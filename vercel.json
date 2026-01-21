@@ -3,9 +3,12 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/dashboard", "destination": "/index.html" },
 
+    { "source": "/stock-management", "destination": "/stock-management.html" },
+    {
+      "source": "/consumable-records",
+      "destination": "/consumable-records.html"
+    },
     { "source": "/fixture-records", "destination": "/fixture-records.html" },
-    { "source": "/consumable-records", "destination": "/consumable-records.html" },
-    { "source": "/communications", "destination": "/communications.html" },
-    { "source": "/stock-management", "destination": "/stock-management.html" }
+    { "source": "/communications", "destination": "/communications.html" }
   ]
 }
