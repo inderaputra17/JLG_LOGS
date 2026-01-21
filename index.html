@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Dashboard</h1>
+      <nav class="nav">
+        <a class="active" href="index.html">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="communications.html">Comms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Modules</h2>
+      <p class="hint">Open a module like SAP tiles.</p>
+
+      <div class="tiles">
+        <a class="tile" href="stock-management.html">
+          <div class="tile-title">Stock Management</div>
+          <div class="tile-sub">Add items, edit/delete, transfer locations</div>
+        </a>
+
+        <a class="tile" href="consumable-records.html">
+          <div class="tile-title">Consumable Records</div>
+          <div class="tile-sub">View all consumables with inline edit</div>
+        </a>
+
+        <a class="tile" href="fixture-records.html">
+          <div class="tile-title">Fixture Records</div>
+          <div class="tile-sub">View all fixtures with inline edit</div>
+        </a>
+
+        <a class="tile" href="communications.html">
+          <div class="tile-title">Communications</div>
+          <div class="tile-sub">Radio sets status board</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="card">
+      <h2>🚨 Operational Alerts</h2>
+      <div id="alertsSummary" class="small">Loading alerts…</div>
+      <div class="alerts-list" id="alertsList"></div>
+
+      <p class="hint">
+        Rules: Consumables (Low/Critical/Damaged/Missing), Fixtures (Damaged/Missing), Comms (Spoilt/Decommissioned)
+      </p>
+    </section>
+
+    <!-- Summary -->
+    <section class="card">
+      <h2>Summary</h2>
+      <div class="summary" id="summary"></div>
+      <p class="hint">Data is loaded from Firebase (Firestore).</p>
+    </section>
+  </main>
+
+  <!-- Wizard / First-time guide -->
+  <div id="wizardGate" class="wizard-overlay" hidden>
+    <div class="wizard-card" role="dialog" aria-modal="true" aria-label="Quick guide gate">
+      <h2>Quick Guide?</h2>
+      <p class="small">Is this your first time using the system?</p>
+
+      <div class="wizard-actions">
+        <button class="btn primary" id="wizardStartBtn" type="button">Yes, teach me</button>
+        <button class="btn" id="wizardSkipBtn" type="button">No, I know</button>
+      </div>
+
+      <p class="hint">This will only show once.</p>
+    </div>
+  </div>
+
+  <div id="wizardStep" class="wizard-overlay" hidden>
+    <div class="wizard-card" role="dialog" aria-modal="true" aria-label="Quick guide">
+      <div class="wizard-progress" id="wizardProgress"></div>
+      <h2 id="wizardTitle"></h2>
+      <div class="small" id="wizardText"></div>
+
+      <div class="wizard-actions">
+        <button class="btn" id="wizardBackBtn" type="button">Back</button>
+        <button class="btn" id="wizardNextBtn" type="button">Next</button>
+
+        <button class="btn" id="wizardActionBtn" type="button" hidden></button>
+
+        <button class="btn primary" id="wizardDoneBtn" type="button" hidden>Done</button>
+      </div>
+
+      <button class="wizard-close" id="wizardCloseBtn" type="button" aria-label="Close">✕</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+/* Inline edit styling (same pattern as fixtures) */
+.table .cell-input,
+.table .cell-select{
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(7,10,18,.65);
+  color: var(--text);
+}
+
+.table .actions-inline{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.table .btn.small{
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.table tr.editing td{
+  background: rgba(96,165,250,.06);
+}

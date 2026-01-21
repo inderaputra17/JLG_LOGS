@@ -1,0 +1,31 @@
+/* Force override base.css select styling */
+.table select.status{
+  font-weight: 700;
+  border-radius: 999px;
+  border: 0 !important;
+  outline: none !important;
+
+  padding: 8px 12px !important;
+
+  /* override base.css background */
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Closed select colours */
+.table select.status.online{
+  background: #22c55e !important;
+  color: #062e0c !important;
+}
+.table select.status.offline{
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+.table select.status.notinuse{
+  background: #f59e0b !important;
+  color: #000000 !important;
+}
+.table select.status.spoilt{
+  background: #7f1d1d !important;
+  color: #ffffff !important;
+}

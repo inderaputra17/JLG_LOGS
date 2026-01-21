@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Site Radio Communications</title>
+
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/communications.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Site Radio Communications</h1>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a class="active" href="/communications.html">Comms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ADD / EDIT -->
+    <section class="card">
+      <h2>Add / Update Radio Set</h2>
+
+      <form id="radioForm" class="grid">
+        <label>
+          Set #
+          <input id="setNumber" type="number" min="1" required />
+        </label>
+
+        <label>
+          Volunteer Role
+          <input id="volunteerRole" required />
+        </label>
+
+        <label>
+          Location of Use
+          <input id="locationOfUse" required />
+        </label>
+
+        <label>
+          Call-Sign
+          <input id="callSign" required />
+        </label>
+
+        <label>
+          Status / Use
+          <select id="status">
+            <option>Online</option>
+            <option>Offline</option>
+            <option>Not in Use</option>
+            <option>Spoilt / Decommissioned</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">Save</button>
+          <button class="btn" type="button" id="resetBtn">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TABLE -->
+    <section class="card">
+      <h2>Radio Assignments</h2>
+
+      <div class="table-wrap">
+        <table class="table" id="radioTable">
+          <thead>
+            <tr>
+              <th>Set #</th>
+              <th>Volunteer Role</th>
+              <th>Location of Use</th>
+              <th>Call-Sign</th>
+              <th>Status / Use</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="radioTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="/js/communications.js"></script>
+</body>
+</html>

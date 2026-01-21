@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fixture Records</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/fixture-records.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Fixture Records</h1>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a class="active" href="fixture-records.html">Fixtures</a>
+        <a href="/communications.html">Comms</a>
+
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="row">
+        <h2>All Fixtures</h2>
+        <input id="searchFixtures" class="search" type="search" placeholder="Search name/category/location…" />
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="fixTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Qty</th>
+              <th>Location</th>
+              <th>Site</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="fixTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/core.js"></script>
+  <script type="module" src="/js/fixture-records.js"></script>
+
+  
+  <script>
+    StocksApp.initPage("fixture-records");
+  </script>
+</body>
+</html>

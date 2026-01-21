@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Consumable Records</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/consumable-records.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Consumable Records</h1>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a class="active" href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="communications.html">Comms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="row">
+        <h2>All Consumables</h2>
+        <input id="searchConsumables" class="search" type="search" placeholder="Search name/category/status/location…" />
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="consTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Qty</th>
+              <th>Location</th>
+              <th>Site</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="consTbody"></tbody>
+        </table>
+      </div>
+
+      <p class="hint">
+        Edit inline (no pop-ups). Save applies changes to Firebase immediately.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="js/consumable-records.js"></script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stock Management</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/stock-management.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Stock Management</h1>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a class="active" href="stock-management.html">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="/communications.html">Comms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Add Item Record</h2>
+
+      <form id="addForm" class="grid">
+        <label>
+          Type
+          <select id="type" required>
+            <option value="consumable">Consumable</option>
+            <option value="fixture">Fixture</option>
+          </select>
+        </label>
+
+        <label>
+          Item Name
+          <input id="name" type="text" placeholder="e.g., Bandage" required />
+        </label>
+
+        <label>
+          Main Category
+          <input id="category" type="text" placeholder="e.g., Medical" required />
+        </label>
+
+        <label>
+          Status
+          <select id="status" required></select>
+        </label>
+
+        <label>
+          Quantity
+          <input id="qty" type="number" min="0" step="1" placeholder="e.g., 10" required />
+        </label>
+
+        <label>
+          Location (Main)
+          <input id="locMain" type="text" placeholder="e.g., Post 1" required />
+        </label>
+
+        <label>
+          Location (Exact)
+          <input id="locExact" type="text" placeholder="e.g., Bag A" required />
+        </label>
+
+        <label>
+          Location Site Status
+          <select id="siteStatus" required>
+            <option value="on_site">On Site</option>
+            <option value="off_site">Off Site</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Add Record</button>
+          <button type="button" id="resetBtn" class="btn">Reset</button>
+        </div>
+      </form>
+
+      <p class="hint">
+        A “record” = item at a specific location (Main + Exact + Site Status).
+        Adding the exact same record merges quantity.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>Records (All)</h2>
+        <input id="searchAll" class="search" type="search" placeholder="Search name/category/location…" />
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="allTable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Qty</th>
+              <th>Location</th>
+              <th>Site</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="allTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Transfer Location</h2>
+
+      <form id="transferForm" class="grid">
+        <label class="span2">
+          From (Select a record)
+          <select id="fromRecord" required></select>
+        </label>
+
+        <label>
+          To Location (Main)
+          <input id="toLocMain" type="text" placeholder="e.g., Post 2" required />
+        </label>
+
+        <label>
+          To Location (Exact)
+          <input id="toLocExact" type="text" placeholder="e.g., Box C" required />
+        </label>
+
+        <label>
+          To Site Status
+          <select id="toSiteStatus" required>
+            <option value="on_site">On Site</option>
+            <option value="off_site">Off Site</option>
+          </select>
+        </label>
+
+        <label>
+          Transfer Quantity (optional)
+          <input id="transferQty" type="number" min="0" step="1" placeholder="leave blank = transfer all" />
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Transfer</button>
+          <button type="button" id="clearTransferBtn" class="btn">Clear</button>
+        </div>
+      </form>
+
+      <p class="hint">Leave quantity blank to transfer ALL quantity from the selected record.</p>
+    </section>
+
+    <section class="card">
+      <h2>Edit Record</h2>
+      <p class="hint">Click “Edit” on any row to load it here.</p>
+
+      <form id="editForm" class="grid">
+        <input id="editId" type="hidden" />
+
+        <label>
+          Type
+          <select id="editType" required>
+            <option value="consumable">Consumable</option>
+            <option value="fixture">Fixture</option>
+          </select>
+        </label>
+
+        <label>
+          Item Name
+          <input id="editName" type="text" required />
+        </label>
+
+        <label>
+          Main Category
+          <input id="editCategory" type="text" required />
+        </label>
+
+        <label>
+          Status
+          <select id="editStatus" required></select>
+        </label>
+
+        <label>
+          Quantity
+          <input id="editQty" type="number" min="0" step="1" required />
+        </label>
+
+        <label>
+          Location (Main)
+          <input id="editLocMain" type="text" required />
+        </label>
+
+        <label>
+          Location (Exact)
+          <input id="editLocExact" type="text" required />
+        </label>
+
+        <label>
+          Site Status
+          <select id="editSiteStatus" required>
+            <option value="on_site">On Site</option>
+            <option value="off_site">Off Site</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Save Changes</button>
+          <button type="button" id="cancelEditBtn" class="btn">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/core.js"></script>
+  <script type="module" src="/js/stock-management.js"></script>
+
+  <script>
+    StocksApp.initPage("stock-management");
+  </script>
+</body>
+</html>
