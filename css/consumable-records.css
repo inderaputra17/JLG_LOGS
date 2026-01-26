@@ -1,26 +1,56 @@
-/* Inline edit styling (same pattern as fixtures) */
+/* Inline edit styling (mobile-safe) */
 .table .cell-input,
 .table .cell-select{
   width: 100%;
-  padding: 8px 10px;
+  max-width: 100%;
+  padding: 10px 12px;                 /* ✅ a bit more touch-friendly */
   border-radius: 10px;
   border: 1px solid var(--line);
   background: rgba(7,10,18,.65);
   color: var(--text);
+  outline: none;
+
+  /* ✅ prevent layout issues in tight columns */
+  min-height: 40px;
 }
 
+/* Focus ring for accessibility */
+.table .cell-input:focus,
+.table .cell-select:focus{
+  border-color: rgba(96,165,250,.6);
+}
+
+/* Actions area: wraps cleanly on phones */
 .table .actions-inline{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
+/* Small buttons: still tap-friendly */
 .table .btn.small{
-  padding: 8px 10px;
+  padding: 10px 12px;                 /* ✅ larger tap target */
+  min-height: 40px;                   /* ✅ consistent with base */
   border-radius: 10px;
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Optional: make action buttons full width on tiny phones */
+@media (max-width: 420px){
+  .table .actions-inline{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .table .btn.small{
+    width: 100%;
+  }
+}
+
+/* Editing highlight */
 .table tr.editing td{
   background: rgba(96,165,250,.06);
 }
