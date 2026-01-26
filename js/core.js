@@ -1,11 +1,15 @@
+/* /js/core.js */
 (() => {
   "use strict";
+
+  // Avoid redefining if script is loaded twice
+  if (window.StocksCore) return;
 
   const STORAGE_KEY = "stocks.records.v1";
 
   const STATUS = Object.freeze({
-    consumable: ["Sustainable", "Low", "Critical", "Damaged", "Missing"],
-    fixture: ["Usable", "Damaged", "Missing"],
+    consumable: Object.freeze(["Sustainable", "Low", "Critical", "Damaged", "Missing"]),
+    fixture: Object.freeze(["Usable", "Damaged", "Missing"]),
   });
 
   function nowIso() {
@@ -13,6 +17,7 @@
   }
 
   function uid() {
+    // Same behavior, slightly safer formatting
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 
@@ -21,12 +26,14 @@
   }
 
   function safeInt(value, fallback = 0) {
-    const n = Number.parseInt(value, 10);
+    const n = Number.parseInt(String(value), 10);
     return Number.isFinite(n) && n >= 0 ? n : fallback;
   }
 
   function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({
+    // Prevents "undefined" becoming literal text
+    const s = String(str ?? "");
+    return s.replace(/[&<>"']/g, (c) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
@@ -38,15 +45,22 @@
   function loadRecords() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const data = raw ? JSON.parse(raw) : [];
+      if (!raw) return [];
+
+      const data = JSON.parse(raw);
       return Array.isArray(data) ? data : [];
-    } catch {
+    } catch (err) {
+      console.warn("StocksCore.loadRecords: failed to read storage", err);
       return [];
     }
   }
 
   function saveRecords(records) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records ?? []));
+    } catch (err) {
+      console.warn("StocksCore.saveRecords: failed to write storage", err);
+    }
   }
 
   function siteText(siteStatus) {
@@ -59,19 +73,25 @@
 
   function matchQuery(record, q) {
     if (!q) return true;
+
+    const queryText = normalize(q).toLowerCase();
+    if (!queryText) return true;
+
     const hay = [
-      record.type,
-      record.name,
-      record.category,
-      record.status,
-      record.locMain,
-      record.locExact,
-      record.siteStatus,
+      record?.type,
+      record?.name,
+      record?.category,
+      record?.status,
+      record?.locMain,
+      record?.locExact,
+      record?.siteStatus,
     ].join(" ").toLowerCase();
-    return hay.includes(q.toLowerCase());
+
+    return hay.includes(queryText);
   }
 
   function makeRecord(fields) {
+    // Preserve original behavior (no schema change)
     return {
       id: uid(),
       type: fields.type,
@@ -88,8 +108,11 @@
   }
 
   function setStatusOptions(selectEl, type) {
+    if (!selectEl) return;
+
     selectEl.innerHTML = "";
     const list = STATUS[type] || [];
+
     for (const s of list) {
       const opt = document.createElement("option");
       opt.value = s;
@@ -99,7 +122,8 @@
   }
 
   function findExactRecord(records, key) {
-    return records.find((r) =>
+    const list = Array.isArray(records) ? records : [];
+    return list.find((r) =>
       r.type === key.type &&
       r.name === key.name &&
       r.category === key.category &&
@@ -112,10 +136,14 @@
 
   function registerSW() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    navigator.serviceWorker.register("service-worker.js").catch((err) => {
+      // Silent in prod, but helpful in dev
+      console.warn("StocksCore.registerSW: failed", err);
+    });
   }
 
   window.StocksCore = Object.freeze({
+    STORAGE_KEY,
     STATUS,
     nowIso,
     normalize,
