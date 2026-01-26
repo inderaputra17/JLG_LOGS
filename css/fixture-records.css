@@ -1,26 +1,54 @@
-/* Inline edit styling (keeps your base look) */
+/* Inline edit styling (mobile-safe, keeps your base look) */
 .table .cell-input,
-.table .cell-select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(7, 10, 18, 0.65);
-  color: var(--text);
+.table .cell-select{
+  width:100%;
+  max-width:100%;
+  padding:10px 12px;                 /* ✅ easier to tap */
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:rgba(7,10,18,.65);
+  color:var(--text);
+  outline:none;
+  min-height:40px;                   /* ✅ touch target */
 }
 
-.table .actions-inline {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+/* Focus ring (matches base.css focus tone) */
+.table .cell-input:focus,
+.table .cell-select:focus{
+  border-color:rgba(96,165,250,.6);
 }
 
-.table .btn.small {
-  padding: 8px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+/* Actions: wraps nicely */
+.table .actions-inline{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
 }
 
-.table tr.editing td {
-  background: rgba(96, 165, 250, 0.06);
+/* Small buttons: still tap-friendly on phones */
+.table .btn.small{
+  padding:10px 12px;                 /* ✅ bigger tap area */
+  min-height:40px;
+  border-radius:10px;
+  font-size:12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Tiny phones: stack buttons vertically to avoid overflow */
+@media (max-width:420px){
+  .table .actions-inline{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .table .btn.small{
+    width:100%;
+  }
+}
+
+/* Editing highlight */
+.table tr.editing td{
+  background:rgba(96,165,250,.06);
 }
