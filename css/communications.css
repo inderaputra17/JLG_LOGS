@@ -1,48 +1,61 @@
-/* ---------- Status select pill (table) ---------- */
+/* =========================================================
+   communications.css
+   - Device-aware, aligned UI across all screen sizes
+   - Designed to sit ON TOP of base.css
+   - Mobile-first, safe tap targets, no layout shifts
+   ========================================================= */
+
+/* =========================================================
+   Tables – status select pill (aligned + predictable)
+   ========================================================= */
 /* Keep this file loaded AFTER base.css */
 .table select.status{
-  /* shape + weight */
+  /* ---------- Typography + shape ---------- */
   font-weight: 800;
   border-radius: 999px;
 
-  /* remove default borders/outlines */
+  /* ---------- Reset native styling ---------- */
   border: 0 !important;
   outline: none !important;
   box-shadow: none !important;
-
-  /* sizing */
-  width: 100%;
-  max-width: 100%;
-  min-height: var(--tap);          /* ✅ consistent tap target */
-  padding: 8px 12px !important;
-  line-height: 1.2;
-  text-align: center;
-
-  /* visuals */
   background: transparent !important;
   color: inherit !important;
 
-  /* mobile rendering consistency */
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
 
-  /* prevent overflow */
+  /* ---------- Sizing & alignment ---------- */
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--tap);        /* consistent tap target */
+  padding: 8px 12px !important;
+  line-height: 1.2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* ---------- Overflow safety ---------- */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   cursor: pointer;
+
+  /* Prevent subtle layout jumps */
+  vertical-align: middle;
 }
 
-/* Ensure the pill doesn't expand table cells unexpectedly */
+/* Ensure pills never stretch table cells unexpectedly */
 .table td select.status{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  max-width: 100%;
 }
 
-/* ---------- Status colours ---------- */
+/* =========================================================
+   Status colours (semantic + readable)
+   ========================================================= */
 .table select.status.online{
   background: #22c55e !important;
   color: #062e0c !important;
@@ -63,16 +76,58 @@
   color: #ffffff !important;
 }
 
-/* ---------- Focus (keyboard accessibility) ---------- */
+/* =========================================================
+   Focus & accessibility
+   ========================================================= */
 .table select.status:focus-visible{
   outline: 2px solid rgba(96,165,250,.75) !important;
   outline-offset: 2px;
 }
 
-/* ---------- Mobile tuning ---------- */
+/* Fallback for browsers without focus-visible */
+.table select.status:focus{
+  outline: 2px solid rgba(96,165,250,.55);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   Device tuning – keeps alignment consistent
+   ========================================================= */
+
+/* Phones & small tablets */
 @media (max-width: 520px){
   .table select.status{
     padding: 10px 14px !important; /* easier thumb tap */
     font-size: 14px;               /* readable on phones */
   }
+}
+
+/* Ultra-small phones */
+@media (max-width: 360px){
+  .table select.status{
+    font-size: 13px;
+    padding: 10px 12px !important;
+  }
+}
+
+/* =========================================================
+   Motion safety (inherits from base.css but reinforced here)
+   ========================================================= */
+@media (prefers-reduced-motion: reduce){
+  .table select.status{
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   Defensive alignment helpers (communications tables)
+   ========================================================= */
+/* Keeps rows visually aligned when mixed with buttons/inputs */
+.table td{
+  vertical-align: middle;
+}
+
+/* Prevent pill from shrinking in flex/table hybrids */
+.table td > *{
+  min-width: 0;
 }
