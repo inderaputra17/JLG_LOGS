@@ -1,35 +1,27 @@
 // /js/dashboard.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { db } from "./firebase-core.js";
+
 import {
-  getFirestore,
   collection,
   getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAwyIghTzxPQ3veDYljtOYZg4b0EiJ5hr4",
-  authDomain: "first-aid-app-8ae79.firebaseapp.com",
-  projectId: "first-aid-app-8ae79",
-  storageBucket: "first-aid-app-8ae79.firebasestorage.app",
-  messagingSenderId: "759107374304",
-  appId: "1:759107374304:web:efb87e2c55a32e95129485"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// collections
+/* =========================================================
+   Collections
+========================================================= */
 const STOCKS_COL = collection(db, "stocks");
 const COMMS_COL = collection(db, "communications");
 
-// alert rules
+/* =========================================================
+   Alert rules
+========================================================= */
 const CONSUMABLE_ALERTS = new Set(["Low", "Critical", "Damaged", "Missing"]);
 const FIXTURE_ALERTS = new Set(["Damaged", "Missing"]);
 const COMMS_ALERTS = new Set(["Spoilt / Decommissioned"]);
 
-/* ---------------------------
+/* =========================================================
    Helpers
----------------------------- */
+========================================================= */
 function safeNum(n) {
   const x = Number(n);
   return Number.isFinite(x) ? x : 0;
@@ -45,44 +37,6 @@ function escapeHtml(str) {
   }[c]));
 }
 
-/* ---------------------------
-   Summary
----------------------------- */
-async function renderSummary() {
-  const summaryEl = document.getElementById("summary");
-  if (!summaryEl) return;
-
-  try {
-    const snap = await getDocs(STOCKS_COL);
-    const records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const totalRecords = records.length;
-    const consumables = records.filter(r => r.type === "consumable");
-    const fixtures = records.filter(r => r.type === "fixture");
-
-    const sumQty = (list) => list.reduce((acc, r) => acc + safeNum(r.quantity), 0);
-
-    const cards = [
-      { num: totalRecords, label: "Total Records" },
-      { num: `${consumables.length} (Qty ${sumQty(consumables)})`, label: "Consumables" },
-      { num: `${fixtures.length} (Qty ${sumQty(fixtures)})`, label: "Fixtures" },
-    ];
-
-    summaryEl.innerHTML = cards.map(c => `
-      <div class="summary-card">
-        <div class="summary-num">${escapeHtml(String(c.num))}</div>
-        <div class="summary-label">${escapeHtml(c.label)}</div>
-      </div>
-    `).join("");
-  } catch (err) {
-    console.error(err);
-    summaryEl.innerHTML = `<div class="small">Failed to load summary (Firestore permissions/network).</div>`;
-  }
-}
-
-/* ---------------------------
-   Alerts
----------------------------- */
 function severityFor(module, status) {
   if (module === "Consumable") {
     if (status === "Critical" || status === "Missing") return "high";
@@ -98,7 +52,7 @@ function severityFor(module, status) {
 
 function buildAlertCard({ severity, module, title, status, location, link }) {
   return `
-    <a class="alert-card ${severity}" href="${link}">
+    <a class="alert-card ${escapeHtml(severity)}" href="${escapeHtml(link)}">
       <div class="alert-top">
         <div class="alert-module">${escapeHtml(module)}</div>
         <div class="alert-status">${escapeHtml(status)}</div>
@@ -109,7 +63,59 @@ function buildAlertCard({ severity, module, title, status, location, link }) {
   `;
 }
 
-async function renderAlerts() {
+/* =========================================================
+   Data fetching
+========================================================= */
+async function fetchStocks() {
+  const snap = await getDocs(STOCKS_COL);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+async function fetchComms() {
+  const snap = await getDocs(COMMS_COL);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/* =========================================================
+   Summary
+========================================================= */
+async function renderSummary(records) {
+  const summaryEl = document.getElementById("summary");
+  if (!summaryEl) return;
+
+  try {
+    const totalRecords = records.length;
+    const consumables = records.filter((r) => r.type === "consumable");
+    const fixtures = records.filter((r) => r.type === "fixture");
+
+    const sumQty = (list) => list.reduce((acc, r) => acc + safeNum(r.quantity), 0);
+
+    const cards = [
+      { num: totalRecords, label: "Total Records" },
+      { num: `${consumables.length} (Qty ${sumQty(consumables)})`, label: "Consumables" },
+      { num: `${fixtures.length} (Qty ${sumQty(fixtures)})`, label: "Fixtures" },
+    ];
+
+    summaryEl.innerHTML = cards
+      .map(
+        (c) => `
+        <div class="summary-card">
+          <div class="summary-num">${escapeHtml(String(c.num))}</div>
+          <div class="summary-label">${escapeHtml(c.label)}</div>
+        </div>
+      `
+      )
+      .join("");
+  } catch (err) {
+    console.error(err);
+    summaryEl.innerHTML = `<div class="small">Failed to load summary (Firestore permissions/network).</div>`;
+  }
+}
+
+/* =========================================================
+   Alerts
+========================================================= */
+async function renderAlerts(stocksRecords, commsRecords) {
   const summaryEl = document.getElementById("alertsSummary");
   const listEl = document.getElementById("alertsList");
   if (!summaryEl || !listEl) return;
@@ -117,10 +123,8 @@ async function renderAlerts() {
   try {
     const alerts = [];
 
-    // stocks
-    const stockSnap = await getDocs(STOCKS_COL);
-    stockSnap.forEach(d => {
-      const r = d.data();
+    // Stocks alerts
+    for (const r of stocksRecords) {
       const type = r.type;
       const status = r.status;
 
@@ -129,7 +133,7 @@ async function renderAlerts() {
           module: "Consumable",
           title: r.name ?? "Unnamed",
           status,
-          location: `${r.locMain ?? ""} / ${r.locExact ?? ""}`,
+          location: `${r.locMain ?? ""} / ${r.locExact ?? ""}`.trim(),
           link: "consumable-records.html",
           severity: severityFor("Consumable", status),
         });
@@ -140,19 +144,16 @@ async function renderAlerts() {
           module: "Fixture",
           title: r.name ?? "Unnamed",
           status,
-          location: `${r.locMain ?? ""} / ${r.locExact ?? ""}`,
+          location: `${r.locMain ?? ""} / ${r.locExact ?? ""}`.trim(),
           link: "fixture-records.html",
           severity: severityFor("Fixture", status),
         });
       }
-    });
+    }
 
-    // comms
-    const commSnap = await getDocs(COMMS_COL);
-    commSnap.forEach(d => {
-      const r = d.data();
+    // Comms alerts
+    for (const r of commsRecords) {
       const status = r.status;
-
       if (COMMS_ALERTS.has(status)) {
         const setNo = r.setNumber ?? "";
         const cs = r.callSign ? ` (${r.callSign})` : "";
@@ -160,12 +161,12 @@ async function renderAlerts() {
           module: "Comms",
           title: `Set ${setNo}${cs}`.trim(),
           status,
-          location: r.locationOfUse ?? "",
+          location: (r.locationOfUse ?? "").trim(),
           link: "communications.html",
           severity: severityFor("Comms", status),
         });
       }
-    });
+    }
 
     const order = { high: 0, med: 1 };
     alerts.sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
@@ -185,40 +186,93 @@ async function renderAlerts() {
   }
 }
 
-/* ---------------------------
-   Wizard (first-time only)
-   FIXED: no blank, no re-show on back
----------------------------- */
-const WIZ_KEY = "fa_dashboard_wizard_seen";
+/* =========================================================
+   Wizard (GLOBAL across all pages)
+   - Skip/quit once on dashboard => no wizards anywhere
+   - Uses existing dashboard wizard DOM (#wizardGate, #wizardStep, etc.)
+   - Quit anytime: Skip / Close / ESC / clicking backdrop
+========================================================= */
+const WIZARD_GLOBAL_KEY = "wizard_seen__ALL__v1";
+const WIZARD_PAGE_KEY = "wizard_seen__dashboard__v1";
 
-// migrate old keys once (your current key is v2)
-(function migrateWizardKey() {
-  const oldKeys = ["fa_wizard_seen_v1", "fa_wizard_seen_v2", "fa_wizard_seen_v3"];
-  try {
-    for (const k of oldKeys) {
-      if (localStorage.getItem(k) === "1") {
-        localStorage.setItem(WIZ_KEY, "1");
-        break;
-      }
-    }
-  } catch (_) {}
-})();
+// Backward-compat key (existing dashboard key)
+const LEGACY_DASH_KEY = "fa_dashboard_wizard_seen";
 
-function hasSeenWizard() {
+// Older legacy keys you used previously
+const LEGACY_KEYS = ["fa_wizard_seen_v1", "fa_wizard_seen_v2", "fa_wizard_seen_v3"];
+
+function safeGet(key, storage) {
   try {
-    if (sessionStorage.getItem(WIZ_KEY) === "1") return true;
-  } catch (_) {}
-  try {
-    return localStorage.getItem(WIZ_KEY) === "1";
-  } catch (_) {
-    return false;
+    return storage.getItem(key);
+  } catch {
+    return null;
   }
 }
 
-function markWizardSeen() {
-  try { localStorage.setItem(WIZ_KEY, "1"); } catch (_) {}
-  try { sessionStorage.setItem(WIZ_KEY, "1"); } catch (_) {}
+function safeSet(key, val, storage) {
+  try {
+    storage.setItem(key, val);
+  } catch {
+    // ignore
+  }
 }
+
+function markAllWizardsSeen() {
+  // persist strongly
+  safeSet(WIZARD_GLOBAL_KEY, "1", localStorage);
+  safeSet(WIZARD_GLOBAL_KEY, "1", sessionStorage);
+}
+
+function markThisWizardSeen() {
+  safeSet(WIZARD_PAGE_KEY, "1", localStorage);
+  safeSet(WIZARD_PAGE_KEY, "1", sessionStorage);
+}
+
+function hasSeenGlobalWizard() {
+  const s1 = safeGet(WIZARD_GLOBAL_KEY, sessionStorage);
+  const l1 = safeGet(WIZARD_GLOBAL_KEY, localStorage);
+  return s1 === "1" || l1 === "1";
+}
+
+function hasSeenThisWizard() {
+  const s1 = safeGet(WIZARD_PAGE_KEY, sessionStorage);
+  const l1 = safeGet(WIZARD_PAGE_KEY, localStorage);
+  return s1 === "1" || l1 === "1";
+}
+
+function shouldShowWizard() {
+  // If both storage calls fail, safest is not to show (prevents loops / “broken” wizard)
+  const globalL = safeGet(WIZARD_GLOBAL_KEY, localStorage);
+  const pageL = safeGet(WIZARD_PAGE_KEY, localStorage);
+  const globalS = safeGet(WIZARD_GLOBAL_KEY, sessionStorage);
+  const pageS = safeGet(WIZARD_PAGE_KEY, sessionStorage);
+
+  const storageBlocked = globalL === null && pageL === null && globalS === null && pageS === null;
+  if (storageBlocked) return false;
+
+  return !hasSeenGlobalWizard() && !hasSeenThisWizard();
+}
+
+(function migrateWizardKeysToGlobal() {
+  // If user has ANY old wizard key set, treat as “seen globally”
+  try {
+    const legacySeen =
+      localStorage.getItem(LEGACY_DASH_KEY) === "1" ||
+      LEGACY_KEYS.some((k) => localStorage.getItem(k) === "1");
+
+    if (legacySeen) {
+      // set global + this page so it will never re-open
+      localStorage.setItem(WIZARD_GLOBAL_KEY, "1");
+      localStorage.setItem(WIZARD_PAGE_KEY, "1");
+
+      // also mirror in session to avoid re-show within session
+      try { sessionStorage.setItem(WIZARD_GLOBAL_KEY, "1"); } catch {}
+      try { sessionStorage.setItem(WIZARD_PAGE_KEY, "1"); } catch {}
+    }
+  } catch {
+    // ignore
+  }
+})();
 
 function initDashboardWizard() {
   const gate = document.getElementById("wizardGate");
@@ -238,7 +292,11 @@ function initDashboardWizard() {
   const closeBtn = document.getElementById("wizardCloseBtn");
   const actionBtn = document.getElementById("wizardActionBtn");
 
-  if (!startBtn || !skipBtn || !titleEl || !textEl || !progEl || !backBtn || !nextBtn || !doneBtn || !closeBtn || !actionBtn) {
+  if (
+    !startBtn || !skipBtn ||
+    !titleEl || !textEl || !progEl ||
+    !backBtn || !nextBtn || !doneBtn || !closeBtn || !actionBtn
+  ) {
     console.warn("Wizard DOM missing required elements. Wizard disabled.");
     return;
   }
@@ -252,7 +310,7 @@ function initDashboardWizard() {
           <li>Click an alert card to open the correct page.</li>
           <li>Edit the record to fix the issue (status/location/qty).</li>
         </ol>
-      `
+      `,
     },
     {
       title: "Add items",
@@ -264,7 +322,7 @@ function initDashboardWizard() {
           <li>Qty is optional → press <b>Save</b>.</li>
         </ol>
       `,
-      action: { label: "Open Stock Management", href: "stock-management.html" }
+      action: { label: "Open Stock Management", href: "stock-management.html" },
     },
     {
       title: "Edit records (inline, no popups)",
@@ -276,7 +334,7 @@ function initDashboardWizard() {
           <li>Press <b>Save</b> to apply to Firebase.</li>
         </ol>
       `,
-      action: { label: "Open Consumables", href: "consumable-records.html" }
+      action: { label: "Open Consumables", href: "consumable-records.html" },
     },
     {
       title: "Transfer (location change)",
@@ -286,7 +344,7 @@ function initDashboardWizard() {
           <li>Update Main + Exact location.</li>
           <li>Qty can be adjusted if you move part of the stock (optional).</li>
         </ol>
-      `
+      `,
     },
     {
       title: "Communications (radio sets)",
@@ -297,50 +355,63 @@ function initDashboardWizard() {
           <li><b>Spoilt / Decommissioned</b> appears in Dashboard Alerts.</li>
         </ol>
       `,
-      action: { label: "Open Comms", href: "communications.html" }
-    }
+      action: { label: "Open Comms", href: "communications.html" },
+    },
   ];
 
   let i = 0;
 
-  // Force hidden on init (prevents SW cached overlay state)
-  gate.hidden = true; gate.style.display = "none";
-  step.hidden = true; step.style.display = "none";
-  document.body.style.overflow = "";
-
+  // Strong show/hide controls to avoid “slightly broken” state
   function hardHide(el) {
     el.hidden = true;
     el.style.display = "none";
-  }
-  function hardShow(el) {
-    el.hidden = false;
-    el.style.display = "grid";
+    el.setAttribute("aria-hidden", "true");
   }
 
-  function lockBody() { document.body.style.overflow = "hidden"; }
-  function unlockBody() { document.body.style.overflow = ""; }
+  function hardShow(el, display = "grid") {
+    el.hidden = false;
+    el.style.display = display;
+    el.setAttribute("aria-hidden", "false");
+  }
+
+  function lockBody() {
+    document.body.style.overflow = "hidden";
+  }
+
+  function unlockBody() {
+    document.body.style.overflow = "";
+  }
 
   function finishWizard() {
-    markWizardSeen();
+    // finishing/skipping dashboard wizard = skip ALL page wizards
+    markAllWizardsSeen();
+    markThisWizardSeen();
+
+    // Also set legacy dashboard key so old logic (if any) won’t re-trigger elsewhere
+    try { localStorage.setItem(LEGACY_DASH_KEY, "1"); } catch {}
+
     hardHide(gate);
     hardHide(step);
     unlockBody();
   }
 
   function showGate() {
-    hardShow(gate);
+    // Gate overlay should visually match wizard overlay styles
+    // If your CSS expects display:grid, keep it
+    hardShow(gate, "grid");
     hardHide(step);
     lockBody();
   }
 
   function showStep() {
     hardHide(gate);
-    hardShow(step);
+    hardShow(step, "grid");
     lockBody();
   }
 
   function renderStep() {
     const s = steps[i];
+
     progEl.textContent = `Step ${i + 1} of ${steps.length}`;
     titleEl.textContent = s.title;
     textEl.innerHTML = s.html;
@@ -352,6 +423,8 @@ function initDashboardWizard() {
     if (s.action) {
       actionBtn.hidden = false;
       actionBtn.textContent = s.action.label;
+
+      // Important: remove any previous handler safely by overwriting
       actionBtn.onclick = () => {
         finishWizard();
         location.href = s.action.href;
@@ -365,23 +438,29 @@ function initDashboardWizard() {
 
   function startWizard() {
     i = 0;
-    renderStep(); // ✅ render FIRST (prevents blank)
-    showStep();   // ✅ then show
+    renderStep();
+    showStep();
+
+    // Focus first meaningful action for accessibility
+    try { nextBtn.focus(); } catch {}
   }
 
-  // Only show gate if not seen
-  if (!hasSeenWizard()) {
+  // Ensure everything is hidden first to prevent flicker
+  hardHide(gate);
+  hardHide(step);
+  unlockBody();
+
+  // Only show if global + page not seen
+  if (shouldShowWizard()) {
     showGate();
   } else {
-    // ensure fully closed if already seen
     finishWizard();
   }
 
-  // Gate buttons
+  // Buttons
   startBtn.addEventListener("click", startWizard);
   skipBtn.addEventListener("click", finishWizard);
 
-  // Step buttons
   backBtn.addEventListener("click", () => {
     if (i > 0) i -= 1;
     renderStep();
@@ -395,17 +474,34 @@ function initDashboardWizard() {
   doneBtn.addEventListener("click", finishWizard);
   closeBtn.addEventListener("click", finishWizard);
 
-  // ESC closes
+  // Clicking the overlay background should close too (quit anytime)
+  gate.addEventListener("click", (e) => {
+    if (e.target === gate) finishWizard();
+  });
+  step.addEventListener("click", (e) => {
+    if (e.target === step) finishWizard();
+  });
+
+  // ESC to close if open
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && (!gate.hidden || !step.hidden)) finishWizard();
+    if (e.key !== "Escape") return;
+    if (!gate.hidden || !step.hidden) finishWizard();
   });
 }
 
-/* ---------------------------
+/* =========================================================
    Init
----------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
-  renderSummary();
-  renderAlerts();
+========================================================= */
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const [stocks, comms] = await Promise.all([fetchStocks(), fetchComms()]);
+    renderSummary(stocks);
+    renderAlerts(stocks, comms);
+  } catch (err) {
+    console.error("Dashboard init failed:", err);
+    renderSummary([]);
+    renderAlerts([], []);
+  }
+
   initDashboardWizard();
 });
