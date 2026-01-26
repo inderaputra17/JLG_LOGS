@@ -10,8 +10,11 @@
   --radius-sm:12px;
   --maxw:1100px;
 
-  /* ✅ fluid spacing for all devices */
+  /* Fluid spacing across all devices */
   --gutter: clamp(12px, 3vw, 18px);
+
+  /* Mobile-friendly tap target baseline */
+  --tap: 44px;
 }
 
 /* ---------- Reset ---------- */
@@ -29,8 +32,8 @@ html, body{
   width:100%;
   margin:0;
   padding:0;
-  min-height:100dvh; /* ✅ mobile-safe viewport height */
-  overflow-x:hidden; /* ✅ prevent page-level horizontal scroll */
+  min-height:100dvh;         /* mobile-safe viewport height */
+  overflow-x:hidden;         /* prevent page-level horizontal scroll */
 }
 
 body{
@@ -51,6 +54,11 @@ img, svg, video, canvas{
   max-width:100%;
   height:auto;
   display:block;
+}
+
+/* prevent long strings from breaking layouts */
+h1, h2, h3, p, a, li{
+  overflow-wrap:anywhere;
 }
 
 /* ---------- Topbar / Navigation ---------- */
@@ -94,9 +102,11 @@ h1{
   color:var(--muted);
   font-size:13px;
   line-height:1;
-  min-height:40px;           /* ✅ better tap targets */
+
+  min-height:var(--tap);     /* better tap targets */
   display:inline-flex;
   align-items:center;
+  justify-content:center;
 }
 
 .nav a.active{
@@ -111,15 +121,28 @@ h1{
     flex-direction:column;
     align-items:flex-start;
   }
+
   .nav{
     width:100%;
     flex-wrap:nowrap;
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
-    padding-bottom:4px;
+    padding-bottom:6px;
+    gap:10px;
+
+    /* subtle hint that it scrolls */
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 14px),
+      transparent
+    );
   }
+
   .nav a{
     white-space:nowrap;
+    flex:0 0 auto;
   }
 }
 
@@ -175,8 +198,13 @@ select{
   color:var(--text);
   outline:none;
 
-  /* ✅ prevents iOS zoom on focus */
+  /* prevents iOS zoom on focus */
   font-size:16px;
+  min-height:var(--tap);
+
+  /* more consistent styling on iOS */
+  -webkit-appearance:none;
+  appearance:none;
 }
 
 input:focus,
@@ -198,13 +226,15 @@ select:focus{
   background:rgba(10,14,26,.9);
   color:var(--text);
   cursor:pointer;
-  font-size:13px;
   white-space:nowrap;
 
-  min-height:40px;           /* ✅ tap target */
+  min-height:var(--tap);
   display:inline-flex;
   align-items:center;
   justify-content:center;
+
+  /* slightly larger for phones */
+  font-size:14px;
 }
 
 .btn.primary{
@@ -228,13 +258,14 @@ select:focus{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  align-items:flex-start;
+  align-items:center; /* better alignment on small screens */
   justify-content:space-between;
 }
 
 .search{
   width:100%;
   max-width:420px;
+  min-height:var(--tap);
 }
 
 .small{
@@ -251,15 +282,10 @@ select:focus{
   background:rgba(7,10,18,.5);
 }
 
-/* prevent long strings from breaking layouts */
-h1, h2, h3, p, a, li{
-  overflow-wrap:anywhere;
-}
-
 /* ---------- Tables (responsive, table-only scroll) ---------- */
 .table-wrap{
   width:100%;
-  overflow-x:auto;               /* ✅ allows table to scroll without page scrolling */
+  overflow-x:auto;                 /* table scrolls, page doesn't */
   -webkit-overflow-scrolling:touch;
   border-radius:var(--radius-sm);
 }
@@ -268,8 +294,12 @@ h1, h2, h3, p, a, li{
   width:100%;
   border-collapse:collapse;
 
-  /* ✅ keeps columns readable on phones */
-  min-width:720px;
+  /* readable columns on phones, but not too wide */
+  min-width:640px;
+}
+
+@media (max-width: 420px){
+  .table{ min-width:560px; }
 }
 
 .table th,
@@ -299,8 +329,8 @@ h1, h2, h3, p, a, li{
 
 /* ---------- Responsive Enhancements ---------- */
 @media (min-width: 760px){
-  h1{font-size:18px}
-  .container{padding:18px var(--gutter) 30px}
+  h1{ font-size:18px; }
+  .container{ padding:18px var(--gutter) 30px; }
 
   .grid{
     grid-template-columns:repeat(2, minmax(0,1fr));
@@ -314,16 +344,13 @@ h1, h2, h3, p, a, li{
     grid-column:span 2;
   }
 
-  /* restore smaller input size on desktop if desired */
-  input, select{
-    font-size:13px;
-  }
+  /* restore compact desktop sizes */
+  input, select{ font-size:13px; }
+  .btn{ font-size:13px; }
 }
 
 @media (max-width: 420px){
-  .btn{
-    width:100%;
-  }
+  .btn{ width:100%; }
 }
 
 /* ---------- Accessibility: reduce motion ---------- */
