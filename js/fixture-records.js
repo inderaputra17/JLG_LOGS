@@ -1,7 +1,7 @@
 // /js/fixture-records.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { db } from "./firebase-core.js";
+
 import {
-  getFirestore,
   collection,
   getDocs,
   query,
@@ -12,53 +12,288 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAwyIghTzxPQ3veDYljtOYZg4b0EiJ5hr4",
-  authDomain: "first-aid-app-8ae79.firebaseapp.com",
-  projectId: "first-aid-app-8ae79",
-  storageBucket: "first-aid-app-8ae79.firebasestorage.app",
-  messagingSenderId: "759107374304",
-  appId: "1:759107374304:web:efb87e2c55a32e95129485"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
+/* =========================================================
+   Firestore collection
+========================================================= */
 const STOCKS_COL = collection(db, "stocks");
+
+/* =========================================================
+   Constants
+========================================================= */
 const FIXTURE_STATUS = ["Usable", "Damaged", "Missing"];
 const SITE_STATUS = [
   { v: "on_site", t: "On Site" },
-  { v: "off_site", t: "Off Site" }
+  { v: "off_site", t: "Off Site" },
 ];
 
-function normalize(s){ return String(s ?? "").trim(); }
-function safeInt(value, fallback = 0){
-  const n = Number.parseInt(value, 10);
+/* =========================================================
+   Wizard (GLOBAL across all pages)
+   - Dashboard skip/quit = all pages skip
+   - Page marks itself seen so it won’t repeat here
+   - Quit anytime: X / Skip / outside click / ESC
+   - Uses same CSS class names as dashboard wizard
+========================================================= */
+const WIZARD_GLOBAL_KEY = "wizard_seen__ALL__v1";
+const WIZARD_PAGE_KEY = "wizard_seen__fixture_records__v1";
+
+function safeGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch {
+    // ignore
+  }
+}
+
+function markAllWizardsSeen() {
+  safeSet(WIZARD_GLOBAL_KEY, "1");
+  try { sessionStorage.setItem(WIZARD_GLOBAL_KEY, "1"); } catch {}
+}
+
+function markThisPageWizardSeen() {
+  safeSet(WIZARD_PAGE_KEY, "1");
+  try { sessionStorage.setItem(WIZARD_PAGE_KEY, "1"); } catch {}
+}
+
+function shouldShowWizard() {
+  // If storage is blocked, safest: do not show (prevents loops/breakage)
+  const gl = safeGet(WIZARD_GLOBAL_KEY);
+  const pl = safeGet(WIZARD_PAGE_KEY);
+
+  let gs = null, ps = null;
+  try { gs = sessionStorage.getItem(WIZARD_GLOBAL_KEY); } catch {}
+  try { ps = sessionStorage.getItem(WIZARD_PAGE_KEY); } catch {}
+
+  const storageBlocked = gl === null && pl === null && gs === null && ps === null;
+  if (storageBlocked) return false;
+
+  const globalSeen = gl === "1" || gs === "1";
+  const pageSeen = pl === "1" || ps === "1";
+  return !globalSeen && !pageSeen;
+}
+
+function createWizardOverlay(steps, opts = {}) {
+  const overlay = document.createElement("div");
+  overlay.className = "wizard-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+
+  const card = document.createElement("div");
+  card.className = "wizard-card";
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "wizard-close";
+  closeBtn.type = "button";
+  closeBtn.setAttribute("aria-label", "Close wizard");
+  closeBtn.textContent = "✕";
+
+  const progress = document.createElement("div");
+  progress.className = "wizard-progress";
+
+  const title = document.createElement("div");
+  title.className = "tile-title";
+  title.style.marginBottom = "6px";
+
+  const body = document.createElement("div");
+  body.className = "tile-sub";
+
+  const actions = document.createElement("div");
+  actions.className = "wizard-actions";
+
+  const backBtn = document.createElement("button");
+  backBtn.className = "btn";
+  backBtn.type = "button";
+  backBtn.textContent = "Back";
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "btn primary";
+  nextBtn.type = "button";
+  nextBtn.textContent = "Next";
+
+  const skipBtn = document.createElement("button");
+  skipBtn.className = "btn";
+  skipBtn.type = "button";
+  skipBtn.textContent = "Skip";
+
+  actions.append(backBtn, nextBtn, skipBtn);
+  card.append(closeBtn, progress, title, body, actions);
+  overlay.append(card);
+
+  let idx = 0;
+  let lastActive = null;
+
+  const focusableSelector =
+    "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+
+  function renderStep() {
+    const s = steps[idx] || { title: "", body: "" };
+    progress.textContent = `Step ${idx + 1} of ${steps.length}`;
+    title.textContent = s.title || "";
+    body.textContent = s.body || "";
+
+    backBtn.disabled = idx === 0;
+    nextBtn.textContent = idx === steps.length - 1 ? "Done" : "Next";
+
+    if (s.focusEl && typeof s.focusEl.focus === "function") {
+      try { s.focusEl.focus({ preventScroll: true }); } catch {}
+      try { s.focusEl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+    }
+  }
+
+  function cleanupAndClose() {
+    document.removeEventListener("keydown", onKeyDown, true);
+    overlay.remove();
+
+    if (lastActive && typeof lastActive.focus === "function") {
+      try { lastActive.focus(); } catch {}
+    }
+  }
+
+  function quitWizard() {
+    // Quit once => skip everywhere
+    markAllWizardsSeen();
+    markThisPageWizardSeen();
+
+    if (typeof opts.onQuit === "function") {
+      try { opts.onQuit(); } catch {}
+    }
+
+    cleanupAndClose();
+  }
+
+  function doneWizard() {
+    // Done => skip everywhere too (no nagging across pages)
+    markAllWizardsSeen();
+    markThisPageWizardSeen();
+
+    if (typeof opts.onDone === "function") {
+      try { opts.onDone(); } catch {}
+    }
+
+    cleanupAndClose();
+  }
+
+  function onKeyDown(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      quitWizard();
+      return;
+    }
+
+    // Focus trap
+    if (e.key === "Tab") {
+      const focusables = overlay.querySelectorAll(focusableSelector);
+      if (!focusables.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  closeBtn.addEventListener("click", quitWizard);
+  skipBtn.addEventListener("click", quitWizard);
+
+  backBtn.addEventListener("click", () => {
+    if (idx > 0) {
+      idx -= 1;
+      renderStep();
+    }
+  });
+
+  nextBtn.addEventListener("click", () => {
+    if (idx < steps.length - 1) {
+      idx += 1;
+      renderStep();
+      return;
+    }
+    doneWizard();
+  });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) quitWizard();
+  });
+
+  function openWizard() {
+    lastActive = document.activeElement;
+    document.body.appendChild(overlay);
+    renderStep();
+
+    const firstBtn = overlay.querySelector("button");
+    if (firstBtn) firstBtn.focus();
+
+    document.addEventListener("keydown", onKeyDown, true);
+  }
+
+  return { openWizard };
+}
+
+/* =========================================================
+   Helpers
+========================================================= */
+function normalize(s) {
+  return String(s ?? "").trim();
+}
+
+function safeInt(value, fallback = 0) {
+  const n = Number.parseInt(String(value), 10);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
-function escapeHtml(str){
+
+function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   }[c]));
 }
-function siteText(v){
+
+function siteText(v) {
   return v === "on_site" ? "On Site" : "Off Site";
 }
-function matchesSearch(r, q){
+
+function matchesSearch(r, q) {
   if (!q) return true;
   const hay = [
-    r.name, r.category, r.status, r.locMain, r.locExact, r.siteStatus
-  ].join(" ").toLowerCase();
+    r.name,
+    r.category,
+    r.status,
+    r.locMain,
+    r.locExact,
+    r.siteStatus,
+  ]
+    .join(" ")
+    .toLowerCase();
   return hay.includes(q.toLowerCase());
 }
 
-async function fetchFixtures(){
+/* =========================================================
+   Firestore ops
+========================================================= */
+async function fetchFixtures() {
   const qy = query(STOCKS_COL, where("type", "==", "fixture"));
   const snap = await getDocs(qy);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-async function saveFixture(id, payload){
+async function saveFixture(id, payload) {
   await updateDoc(doc(db, "stocks", id), {
     ...payload,
     type: "fixture",
@@ -66,14 +301,17 @@ async function saveFixture(id, payload){
   });
 }
 
-async function removeFixture(id){
+async function removeFixture(id) {
   await deleteDoc(doc(db, "stocks", id));
 }
 
-function renderViewRow(r){
+/* =========================================================
+   Render
+========================================================= */
+function renderViewRow(r) {
   const loc = `${escapeHtml(r.locMain ?? "")}<div class="small">${escapeHtml(r.locExact ?? "")}</div>`;
   return `
-    <tr data-id="${r.id}" data-mode="view">
+    <tr data-id="${escapeHtml(r.id)}" data-mode="view">
       <td>${escapeHtml(r.name ?? "")}</td>
       <td>${escapeHtml(r.category ?? "")}</td>
       <td>${escapeHtml(r.status ?? "")}</td>
@@ -90,17 +328,19 @@ function renderViewRow(r){
   `;
 }
 
-function renderEditRow(r){
-  const statusOptions = FIXTURE_STATUS.map(s =>
-    `<option value="${escapeHtml(s)}" ${s === r.status ? "selected" : ""}>${escapeHtml(s)}</option>`
+function renderEditRow(r) {
+  const statusOptions = FIXTURE_STATUS.map(
+    (s) =>
+      `<option value="${escapeHtml(s)}" ${s === r.status ? "selected" : ""}>${escapeHtml(s)}</option>`
   ).join("");
 
-  const siteOptions = SITE_STATUS.map(s =>
-    `<option value="${s.v}" ${s.v === r.siteStatus ? "selected" : ""}>${s.t}</option>`
+  const siteOptions = SITE_STATUS.map(
+    (s) =>
+      `<option value="${s.v}" ${s.v === r.siteStatus ? "selected" : ""}>${s.t}</option>`
   ).join("");
 
   return `
-    <tr class="editing" data-id="${r.id}" data-mode="edit">
+    <tr class="editing" data-id="${escapeHtml(r.id)}" data-mode="edit">
       <td>
         <input class="cell-input" data-field="name" value="${escapeHtml(r.name ?? "")}" />
       </td>
@@ -113,7 +353,14 @@ function renderEditRow(r){
         </select>
       </td>
       <td>
-        <input class="cell-input" data-field="quantity" type="number" min="0" value="${escapeHtml(String(r.quantity ?? 0))}" />
+        <input
+          class="cell-input"
+          data-field="quantity"
+          type="number"
+          min="0"
+          value="${escapeHtml(String(r.quantity ?? 0))}"
+          inputmode="numeric"
+        />
       </td>
       <td>
         <div style="display:grid; gap:8px">
@@ -136,34 +383,78 @@ function renderEditRow(r){
   `;
 }
 
+/* =========================================================
+   Init
+========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("fixTbody");
   const table = document.getElementById("fixTable");
   const search = document.getElementById("searchFixtures");
 
-  let cached = [];
-  let editingId = null;
-  let editingSnapshot = null; // store original row data for cancel
-
-  function render(){
-    const q = normalize(search.value);
-    const filtered = cached.filter(r => matchesSearch(r, q))
-      .sort((a,b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-
-    tbody.innerHTML = filtered.map(r => {
-      if (editingId === r.id) return renderEditRow(r);
-      return renderViewRow(r);
-    }).join("") || `<tr><td colspan="7" class="small">No fixtures found.</td></tr>`;
+  // Guard: prevent crash if HTML changes
+  if (!tbody || !table || !search) {
+    console.warn("Fixture Records: required DOM missing. Script halted.");
+    return;
   }
 
-  async function refresh(){
-    try{
+  let cached = [];
+  let editingId = null;
+  let editingSnapshot = null;
+
+  function render() {
+    const q = normalize(search.value);
+
+    const filtered = cached
+      .filter((r) => matchesSearch(r, q))
+      .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+
+    tbody.innerHTML =
+      filtered
+        .map((r) => (editingId === r.id ? renderEditRow(r) : renderViewRow(r)))
+        .join("") || `<tr><td colspan="7" class="small">No fixtures found.</td></tr>`;
+  }
+
+  async function refresh() {
+    try {
       cached = await fetchFixtures();
       render();
-    }catch(err){
+    } catch (err) {
       console.error(err);
       tbody.innerHTML = `<tr><td colspan="7" class="small">Failed to load (Firestore permissions/network).</td></tr>`;
     }
+  }
+
+  /* ---------------------------
+     Wizard: new users only (global)
+     - If Dashboard was skipped, this won’t run
+     - Quit anytime
+  ---------------------------- */
+  if (shouldShowWizard()) {
+    const steps = [
+      {
+        title: "Welcome to Fixture Records",
+        body: "This page lets you manage fixture items and update their status, quantity, and location.",
+        focusEl: null,
+      },
+      {
+        title: "Search fixtures",
+        body: "Use the search bar to filter by name, category, status, or location fields.",
+        focusEl: search,
+      },
+      {
+        title: "Edit inline",
+        body: "Tap Edit on a row, change the fields, then Save to apply changes to Firestore. Cancel discards edits.",
+        focusEl: null,
+      },
+      {
+        title: "Delete carefully",
+        body: "Delete removes the record from Firestore. You’ll be asked to confirm first.",
+        focusEl: null,
+      },
+    ];
+
+    const wiz = createWizardOverlay(steps);
+    wiz.openWizard();
   }
 
   search.addEventListener("input", render);
@@ -178,10 +469,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const id = tr.dataset.id;
     const action = btn.dataset.action;
 
-    const rowData = cached.find(x => x.id === id);
+    const rowData = cached.find((x) => x.id === id);
     if (!rowData) return;
 
-    // Only one row can be edited at a time
     if (action === "edit") {
       editingId = id;
       editingSnapshot = { ...rowData };
@@ -190,9 +480,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (action === "cancel") {
-      // restore snapshot into cached (in case user typed & we re-render)
       if (editingSnapshot && editingSnapshot.id === id) {
-        const idx = cached.findIndex(x => x.id === id);
+        const idx = cached.findIndex((x) => x.id === id);
         if (idx !== -1) cached[idx] = editingSnapshot;
       }
       editingId = null;
@@ -203,14 +492,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (action === "delete") {
       if (!confirm("Delete this fixture record?")) return;
-      try{
+
+      try {
         await removeFixture(id);
         if (editingId === id) {
           editingId = null;
           editingSnapshot = null;
         }
         await refresh();
-      }catch(err){
+      } catch (err) {
         console.error(err);
         alert("Delete failed. (Check Firestore permissions/network.)");
       }
@@ -218,7 +508,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (action === "save") {
-      // collect inline values
       const getVal = (field) => {
         const el = tr.querySelector(`[data-field="${field}"]`);
         return el ? el.value : "";
@@ -244,22 +533,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (!["on_site","off_site"].includes(payload.siteStatus)) {
+      if (!["on_site", "off_site"].includes(payload.siteStatus)) {
         alert("Invalid site status.");
         return;
       }
 
-      try{
+      try {
         await saveFixture(id, payload);
 
-        // update local cache so UI reflects immediately
-        const idx = cached.findIndex(x => x.id === id);
+        const idx = cached.findIndex((x) => x.id === id);
         if (idx !== -1) cached[idx] = { ...cached[idx], ...payload };
 
         editingId = null;
         editingSnapshot = null;
         render();
-      }catch(err){
+      } catch (err) {
         console.error(err);
         alert("Save failed. (Check Firestore permissions/network.)");
       }
