@@ -1,94 +1,193 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Site Radio Communications</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Site Radio Communications</title>
 
-  <link rel="stylesheet" href="/css/base.css" />
-  <link rel="stylesheet" href="/css/communications.css" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <h1>Site Radio Communications</h1>
-      <nav class="nav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/stock-management">Stock Management</a>
-        <a href="/consumable-records">Consumables</a>
-        <a href="/fixture-records">Fixtures</a>
-        <a class="active" href="/communications">Comms</a>
-      </nav>      
-    </div>
-  </header>
+    <!-- Base + page styles (base.css FIRST) -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/communications.css" />
 
-  <main class="container">
+    <!-- Optional: small preconnect for faster module fetch (safe) -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  </head>
 
-    <!-- ADD / EDIT -->
-    <section class="card">
-      <h2>Add / Update Radio Set</h2>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <h1>Site Radio Communications</h1>
 
-      <form id="radioForm" class="grid">
-        <label>
-          Set #
-          <input id="setNumber" type="number" min="1" required />
-        </label>
+        <!--
+          Responsive nav:
+          - Desktop: normal links
+          - Mobile: burger button toggles menu
+          NOTE: burger styles are in base.css, so HTML includes the button + menu wrapper.
+        -->
+        <button
+          class="nav-toggle"
+          id="navToggle"
+          type="button"
+          aria-label="Open menu"
+          aria-controls="siteNav"
+          aria-expanded="false"
+        >
+          <span class="nav-toggle-bars" aria-hidden="true"></span>
+        </button>
 
-        <label>
-          Volunteer Role
-          <input id="volunteerRole" required />
-        </label>
-
-        <label>
-          Location of Use
-          <input id="locationOfUse" required />
-        </label>
-
-        <label>
-          Call-Sign
-          <input id="callSign" required />
-        </label>
-
-        <label>
-          Status / Use
-          <select id="status">
-            <option>Online</option>
-            <option>Offline</option>
-            <option>Not in Use</option>
-            <option>Spoilt / Decommissioned</option>
-          </select>
-        </label>
-
-        <div class="actions">
-          <button class="btn primary" type="submit">Save</button>
-          <button class="btn" type="button" id="resetBtn">Reset</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- TABLE -->
-    <section class="card">
-      <h2>Radio Assignments</h2>
-
-      <div class="table-wrap">
-        <table class="table" id="radioTable">
-          <thead>
-            <tr>
-              <th>Set #</th>
-              <th>Volunteer Role</th>
-              <th>Location of Use</th>
-              <th>Call-Sign</th>
-              <th>Status / Use</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="radioTbody"></tbody>
-        </table>
+        <nav class="nav" id="siteNav" aria-label="Primary navigation" data-collapsible>
+          <a href="index.html">Dashboard</a>
+          <a href="stock-management.html">Stock Management</a>
+          <a href="consumable-records.html">Consumables</a>
+          <a href="fixture-records.html">Fixtures</a>
+          <a class="active" href="communications.html" aria-current="page">Comms</a>
+        </nav>
       </div>
-    </section>
+    </header>
 
-  </main>
+    <main class="container">
+      <!-- ADD / EDIT -->
+      <section class="card">
+        <h2>Add / Update Radio Set</h2>
 
-  <script type="module" src="/js/communications.js"></script>
-</body>
+        <form id="radioForm" class="grid" autocomplete="off">
+          <label>
+            Set #
+            <input id="setNumber" type="number" min="1" required inputmode="numeric" />
+          </label>
+
+          <label>
+            Volunteer Role
+            <input id="volunteerRole" required />
+          </label>
+
+          <label>
+            Location of Use
+            <input id="locationOfUse" required />
+          </label>
+
+          <label>
+            Call-Sign
+            <input id="callSign" required />
+          </label>
+
+          <label>
+            Status / Use
+            <select id="status">
+              <option>Online</option>
+              <option>Offline</option>
+              <option>Not in Use</option>
+              <option>Spoilt / Decommissioned</option>
+            </select>
+          </label>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Save</button>
+            <button class="btn" type="button" id="resetBtn">Reset</button>
+          </div>
+        </form>
+
+        <p class="hint">
+          Tip: Use <b>Set #</b> as the unique identifier. Saving with an existing Set # will update that record.
+        </p>
+      </section>
+
+      <!-- TABLE -->
+      <section class="card">
+        <div class="row">
+          <h2 style="margin:0">Radio Assignments</h2>
+          <span class="small">Change status directly in the table</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table" id="radioTable">
+            <thead>
+              <tr>
+                <th>Set #</th>
+                <th>Volunteer Role</th>
+                <th>Location of Use</th>
+                <th>Call-Sign</th>
+                <th>Status / Use</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="radioTbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Page logic -->
+    <script type="module" src="js/communications.js"></script>
+
+    <!-- Mobile burger toggle (works with base.css nav styles) -->
+    <script>
+      (function () {
+        const btn = document.getElementById("navToggle");
+        const nav = document.getElementById("siteNav");
+        if (!btn || !nav) return;
+
+        function setOpen(open) {
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          nav.dataset.open = open ? "1" : "0";
+          if (!open) return;
+
+          // focus first link when opened (accessibility)
+          const first = nav.querySelector("a");
+          if (first) first.focus({ preventScroll: true });
+        }
+
+        btn.addEventListener("click", () => {
+          const isOpen = btn.getAttribute("aria-expanded") === "true";
+          setOpen(!isOpen);
+        });
+
+        // Close menu on link click (mobile)
+        nav.addEventListener("click", (e) => {
+          const a = e.target.closest("a");
+          if (!a) return;
+          setOpen(false);
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key !== "Escape") return;
+          setOpen(false);
+        });
+
+        // Close if switching to desktop width
+        const mq = window.matchMedia("(min-width: 721px)");
+        mq.addEventListener?.("change", () => setOpen(false));
+      })();
+    </script>
+
+    <!-- Clean URL helper (Option A – works on Vercel only) -->
+    <script>
+      (function () {
+        const map = {
+          "index.html": "/dashboard",
+          "stock-management.html": "/stock-management",
+          "consumable-records.html": "/consumable-records",
+          "fixture-records.html": "/fixture-records",
+          "communications.html": "/communications"
+        };
+
+        const file = location.pathname.split("/").pop() || "index.html";
+        const clean = map[file];
+        if (!clean) return;
+
+        const host = location.hostname;
+        const isStackBlitz =
+          host.includes("stackblitz") ||
+          host.includes("webcontainer");
+
+        if (isStackBlitz) return;
+
+        if (location.pathname !== clean) {
+          history.replaceState({}, "", clean);
+        }
+      })();
+    </script>
+  </body>
 </html>
