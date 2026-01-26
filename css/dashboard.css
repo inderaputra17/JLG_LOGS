@@ -1,298 +1,382 @@
-/* =========================
-   Responsive (device-based) rewrite
-   - Desktop/tablet/phone tuning
-   - Keeps your current look + behavior
-   ========================= */
+/* =========================================================
+   dashboard.css
+   - Device-aware, aligned UI across all screen sizes
+   - Designed to sit ON TOP of base.css
+   - Uses safe grids + tap targets + no overflow
+   ========================================================= */
 
-/* Base responsive tokens */
-:root{
-  --gap: 12px;
-  --card-radius: 16px;
-  --pad: 14px;
-}
-
-/* Small phones */
-@media (max-width: 480px){
-  :root{
-    --gap: 10px;
-    --card-radius: 14px;
-    --pad: 12px;
+/* ---------------------------------------------------------
+   Local responsive tokens (scoped)
+   NOTE: these are local overrides; base.css still owns --tap, --line, etc
+   --------------------------------------------------------- */
+   :root{
+    --dash-gap: clamp(10px, 2.2vw, 14px);
+    --dash-radius: clamp(14px, 2vw, 16px);
+    --dash-pad: clamp(12px, 2.4vw, 14px);
   }
-}
-
-/* Larger screens */
-@media (min-width: 1024px){
-  :root{
-    --gap: 14px;
-    --pad: 14px;
+  
+  /* Small phones: slightly tighter spacing */
+  @media (max-width: 480px){
+    :root{
+      --dash-gap: 10px;
+      --dash-radius: 14px;
+      --dash-pad: 12px;
+    }
   }
-}
-
-/* -------------------------
-   Tiles
-------------------------- */
-.tiles{
-  display:grid;
-  gap: var(--gap);
-  margin-top: var(--gap);
-
-  /* Device-aware columns (more columns as screen grows) */
-  grid-template-columns: 1fr; /* phones default */
-}
-
-@media (min-width: 480px){
-  .tiles{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-}
-
-@media (min-width: 900px){
-  .tiles{ grid-template-columns: repeat(3, minmax(220px, 1fr)); }
-}
-
-@media (min-width: 1200px){
-  .tiles{ grid-template-columns: repeat(4, minmax(220px, 1fr)); }
-}
-
-.tile{
-  display:block;
-  padding: var(--pad);
-  border-radius: var(--card-radius);
-  border: 1px solid var(--line);
-  background: rgba(7,10,18,.4);
-  transition: transform .08s ease, border-color .08s ease;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-/* Hover only for mouse devices (prevents sticky hover on phones) */
-@media (hover: hover) and (pointer: fine){
-  .tile:hover{
-    transform: translateY(-1px);
-    border-color: rgba(96,165,250,.55);
+  
+  /* Large screens: allow a bit more breathing space */
+  @media (min-width: 1024px){
+    :root{
+      --dash-gap: 14px;
+      --dash-pad: 14px;
+    }
   }
-}
-
-/* Touch feedback only on touch devices */
-@media (hover: none) and (pointer: coarse){
-  .tile:active{
-    transform: scale(.985);
-  }
-}
-
-.tile-title{ font-weight:800; margin-bottom:6px }
-.tile-sub{ color:var(--muted); font-size:13px; line-height:1.35 }
-
-/* -------------------------
-   Summary
-------------------------- */
-.summary{
-  display:grid;
-  gap: var(--gap);
-  margin-top: 10px;
-  grid-template-columns: 1fr; /* phones */
-}
-
-@media (min-width: 480px){
-  .summary{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-}
-
-@media (min-width: 900px){
-  .summary{ grid-template-columns: repeat(3, minmax(220px, 1fr)); }
-}
-
-.summary-card{
-  border: 1px solid var(--line);
-  border-radius: var(--card-radius);
-  padding: 12px;
-  background: rgba(7,10,18,.35);
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-.summary-num{
-  font-size: 26px;
-  font-weight: 900;
-  margin: 2px 0 4px;
-  line-height: 1.05;
-}
-
-.summary-label{ color:var(--muted); font-size:13px }
-
-/* -------------------------
-   Alerts
-------------------------- */
-.alerts-list{
-  margin-top: 10px;
-  display:grid;
-  gap: 10px;
-  grid-template-columns: 1fr; /* phones */
-}
-
-@media (min-width: 520px){
-  .alerts-list{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
-}
-
-@media (min-width: 980px){
-  .alerts-list{ grid-template-columns: repeat(3, minmax(240px, 1fr)); }
-}
-
-.alert-card{
-  display:block;
-  border-radius: var(--card-radius);
-  border: 1px solid var(--line);
-  padding: 12px;
-  background: rgba(7,10,18,.35);
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-@media (hover: hover) and (pointer: fine){
-  .alert-card:hover{
-    border-color: rgba(96,165,250,.55);
-  }
-}
-
-@media (hover: none) and (pointer: coarse){
-  .alert-card:active{
-    transform: scale(.99);
-  }
-}
-
-.alert-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:6px;
-}
-
-/* prevents status pill from shrinking too much */
-.alert-status{ flex: 0 0 auto; }
-
-.alert-module{ font-weight:800 }
-
-.alert-status{
-  font-weight:800;
-  font-size:12px;
-  padding:4px 10px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background: rgba(7,10,18,.45);
-  white-space: nowrap;
-}
-
-.alert-title{ font-weight:700; margin-bottom:4px }
-.alert-location{ color:var(--muted); font-size:12px }
-
-/* severity */
-.alert-card.high{
-  border-color: rgba(239,68,68,.55);
-  background: rgba(239,68,68,.10);
-}
-
-.alert-card.med{
-  border-color: rgba(245,158,11,.55);
-  background: rgba(245,158,11,.10);
-}
-
-/* -------------------------
-   Wizard overlays
-------------------------- */
-.wizard-overlay{
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  background: rgba(0,0,0,.65);
-  backdrop-filter: blur(6px);
-
-  /* short screens: allow scroll within overlay */
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.wizard-card{
-  width: min(560px, 100%);
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(15,26,49,.96);
-  box-shadow: 0 20px 60px rgba(0,0,0,.45);
-  padding: 16px;
-  position: relative;
-
-  /* keep card visible on small height devices */
-  max-height: calc(100dvh - 32px);
-  overflow: auto;
-
-  /* prevents background “scroll chaining” */
-  overscroll-behavior: contain;
-}
-
-/* tighter padding on small phones */
-@media (max-width: 480px){
-  .wizard-overlay{ padding: 12px; }
-  .wizard-card{ padding: 14px; border-radius: 16px; }
-}
-
-.wizard-actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-
-/* avoids tiny buttons */
-.wizard-actions .btn{ flex: 1 1 140px; }
-
-.wizard-progress{
-  font-size:12px;
-  color: var(--muted);
-  margin-bottom:8px;
-}
-
-.wizard-close{
-  position:absolute;
-  top:10px;
-  right:10px;
-  border:1px solid var(--line);
-  background: rgba(7,10,18,.55);
-  color: var(--text);
-  border-radius:10px;
-  width:36px;
-  height:36px;
-  cursor:pointer;
-}
-
-/* -------------------------
-   Accessibility: focus + reduced motion
-------------------------- */
-.tile:focus-visible,
-.alert-card:focus-visible,
-.wizard-close:focus-visible,
-.btn:focus-visible{
-  outline: none;
-  border-color: rgba(96,165,250,.8);
-  box-shadow: 0 0 0 3px rgba(96,165,250,.35);
-}
-
-@media (prefers-reduced-motion: reduce){
-  *{
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Ultra-small phones: force 1 column */
-@media (max-width: 360px){
-  .tiles,
-  .summary,
-  .alerts-list{
+  
+  /* =========================================================
+     Tiles (aligned cards)
+     ========================================================= */
+  .tiles{
+    display:grid;
+    gap: var(--dash-gap);
+    margin-top: var(--dash-gap);
+  
+    /* Mobile-first alignment */
     grid-template-columns: 1fr;
+    min-width: 0;
   }
-}
+  
+  /* Scale columns by device width */
+  @media (min-width: 480px){
+    .tiles{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 900px){
+    .tiles{
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 1200px){
+    .tiles{
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  
+  /* Tile card */
+  .tile{
+    display:block;
+    padding: var(--dash-pad);
+    border-radius: var(--dash-radius);
+    border: 1px solid var(--line);
+    background: rgba(7,10,18,.4);
+  
+    /* Alignment safety */
+    min-width: 0;
+  
+    /* Prevent text from breaking layout */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  
+    /* Micro-interaction (kept subtle) */
+    transition: transform .08s ease, border-color .08s ease, box-shadow .08s ease;
+  }
+  
+  .tile-title{
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  
+  .tile-sub{
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  
+  /* Hover only for mouse devices (prevents sticky hover on phones) */
+  @media (hover: hover) and (pointer: fine){
+    .tile:hover{
+      transform: translateY(-1px);
+      border-color: rgba(96,165,250,.55);
+    }
+  }
+  
+  /* Touch feedback only on touch devices */
+  @media (hover: none) and (pointer: coarse){
+    .tile:active{
+      transform: scale(.985);
+    }
+  }
+  
+  /* =========================================================
+     Summary (aligned metrics grid)
+     ========================================================= */
+  .summary{
+    display:grid;
+    gap: var(--dash-gap);
+    margin-top: 10px;
+  
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+  
+  @media (min-width: 480px){
+    .summary{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 900px){
+    .summary{
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  .summary-card{
+    border: 1px solid var(--line);
+    border-radius: var(--dash-radius);
+    padding: 12px;
+    background: rgba(7,10,18,.35);
+  
+    min-width: 0;
+  
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  .summary-num{
+    font-size: 26px;
+    font-weight: 900;
+    margin: 2px 0 4px;
+    line-height: 1.05;
+  }
+  
+  .summary-label{
+    color: var(--muted);
+    font-size: 13px;
+  }
+  
+  /* =========================================================
+     Alerts (aligned cards grid)
+     ========================================================= */
+  .alerts-list{
+    margin-top: 10px;
+    display:grid;
+    gap: 10px;
+  
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+  
+  @media (min-width: 520px){
+    .alerts-list{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 980px){
+    .alerts-list{
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  .alert-card{
+    display:block;
+    border-radius: var(--dash-radius);
+    border: 1px solid var(--line);
+    padding: 12px;
+    background: rgba(7,10,18,.35);
+  
+    min-width: 0;
+  
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  
+    transition: transform .08s ease, border-color .08s ease, box-shadow .08s ease;
+  }
+  
+  /* Hover only for mouse devices */
+  @media (hover: hover) and (pointer: fine){
+    .alert-card:hover{
+      border-color: rgba(96,165,250,.55);
+    }
+  }
+  
+  /* Touch feedback only for touch devices */
+  @media (hover: none) and (pointer: coarse){
+    .alert-card:active{
+      transform: scale(.99);
+    }
+  }
+  
+  .alert-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:6px;
+  
+    min-width: 0;
+  }
+  
+  .alert-module{
+    font-weight: 800;
+    min-width: 0;
+  }
+  
+  /* Prevent status pill from shrinking too much */
+  .alert-status{
+    flex: 0 0 auto;
+  
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(7,10,18,.45);
+  
+    white-space: nowrap;
+  }
+  
+  .alert-title{
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  
+  .alert-location{
+    color: var(--muted);
+    font-size: 12px;
+  }
+  
+  /* Severity states */
+  .alert-card.high{
+    border-color: rgba(239,68,68,.55);
+    background: rgba(239,68,68,.10);
+  }
+  
+  .alert-card.med{
+    border-color: rgba(245,158,11,.55);
+    background: rgba(245,158,11,.10);
+  }
+  
+  /* =========================================================
+     Wizard overlays (aligned + mobile-safe)
+     ========================================================= */
+  .wizard-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+  
+    display: grid;
+    place-items: center;
+  
+    padding: 16px;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(6px);
+  
+    /* Short screens: allow scroll within overlay */
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .wizard-card{
+    width: min(560px, 100%);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(15,26,49,.96);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    padding: 16px;
+    position: relative;
+  
+    /* Keep card visible on small height devices */
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+  
+    /* Prevent background “scroll chaining” */
+    overscroll-behavior: contain;
+  
+    /* Alignment safety */
+    min-width: 0;
+  }
+  
+  /* Tighter spacing on small phones */
+  @media (max-width: 480px){
+    .wizard-overlay{ padding: 12px; }
+    .wizard-card{
+      padding: 14px;
+      border-radius: 16px;
+    }
+  }
+  
+  .wizard-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:12px;
+  }
+  
+  .wizard-actions .btn{
+    flex: 1 1 140px; /* avoids tiny buttons */
+  }
+  
+  .wizard-progress{
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  
+  .wizard-close{
+    position:absolute;
+    top:10px;
+    right:10px;
+    border:1px solid var(--line);
+    background: rgba(7,10,18,.55);
+    color: var(--text);
+    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    cursor:pointer;
+  }
+  
+  /* =========================================================
+     Accessibility (focus + reduced motion)
+     ========================================================= */
+  .tile:focus-visible,
+  .alert-card:focus-visible,
+  .wizard-close:focus-visible,
+  .btn:focus-visible{
+    outline: none;
+    border-color: rgba(96,165,250,.8);
+    box-shadow: 0 0 0 3px rgba(96,165,250,.35);
+  }
+  
+  /* Fallback focus for browsers without focus-visible */
+  .tile:focus,
+  .alert-card:focus,
+  .wizard-close:focus{
+    border-color: rgba(96,165,250,.6);
+  }
+  
+  @media (prefers-reduced-motion: reduce){
+    .tile,
+    .alert-card,
+    .wizard-close{
+      transition: none !important;
+    }
+  }
+  
+  /* =========================================================
+     Ultra-small phones: force 1 column
+     ========================================================= */
+  @media (max-width: 360px){
+    .tiles,
+    .summary,
+    .alerts-list{
+      grid-template-columns: 1fr;
+    }
+  }
+  
