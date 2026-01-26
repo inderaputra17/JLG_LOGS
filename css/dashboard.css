@@ -1,21 +1,67 @@
-/* Tiles */
+/* =========================
+   Responsive (device-based) rewrite
+   - Desktop/tablet/phone tuning
+   - Keeps your current look + behavior
+   ========================= */
+
+/* Base responsive tokens */
+:root{
+  --gap: 12px;
+  --card-radius: 16px;
+  --pad: 14px;
+}
+
+/* Small phones */
+@media (max-width: 480px){
+  :root{
+    --gap: 10px;
+    --card-radius: 14px;
+    --pad: 12px;
+  }
+}
+
+/* Larger screens */
+@media (min-width: 1024px){
+  :root{
+    --gap: 14px;
+    --pad: 14px;
+  }
+}
+
+/* -------------------------
+   Tiles
+------------------------- */
 .tiles{
   display:grid;
-  gap:12px;
-  margin-top:12px;
+  gap: var(--gap);
+  margin-top: var(--gap);
 
-  /* ✅ auto-fit adapts to any width */
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* Device-aware columns (more columns as screen grows) */
+  grid-template-columns: 1fr; /* phones default */
+}
+
+@media (min-width: 480px){
+  .tiles{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+
+@media (min-width: 900px){
+  .tiles{ grid-template-columns: repeat(3, minmax(220px, 1fr)); }
+}
+
+@media (min-width: 1200px){
+  .tiles{ grid-template-columns: repeat(4, minmax(220px, 1fr)); }
 }
 
 .tile{
   display:block;
-  padding:14px;
-  border-radius:16px;
-  border:1px solid var(--line);
-  background:rgba(7,10,18,.4);
+  padding: var(--pad);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--line);
+  background: rgba(7,10,18,.4);
   transition: transform .08s ease, border-color .08s ease;
-  overflow-wrap:anywhere; /* ✅ long words won't overflow */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 /* Hover only for mouse devices (prevents sticky hover on phones) */
@@ -26,58 +72,91 @@
   }
 }
 
-.tile-title{font-weight:800; margin-bottom:6px}
-.tile-sub{color:var(--muted); font-size:13px; line-height:1.35}
+/* Touch feedback only on touch devices */
+@media (hover: none) and (pointer: coarse){
+  .tile:active{
+    transform: scale(.985);
+  }
+}
 
-/* Summary */
+.tile-title{ font-weight:800; margin-bottom:6px }
+.tile-sub{ color:var(--muted); font-size:13px; line-height:1.35 }
+
+/* -------------------------
+   Summary
+------------------------- */
 .summary{
   display:grid;
-  gap:12px;
-  margin-top:10px;
+  gap: var(--gap);
+  margin-top: 10px;
+  grid-template-columns: 1fr; /* phones */
+}
 
-  /* ✅ auto-fit adapts to any width */
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+@media (min-width: 480px){
+  .summary{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+
+@media (min-width: 900px){
+  .summary{ grid-template-columns: repeat(3, minmax(220px, 1fr)); }
 }
 
 .summary-card{
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:12px;
-  background:rgba(7,10,18,.35);
-  overflow-wrap:anywhere;
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  padding: 12px;
+  background: rgba(7,10,18,.35);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .summary-num{
-  font-size:26px;
-  font-weight:900;
-  margin:2px 0 4px;
-  line-height:1.05;
+  font-size: 26px;
+  font-weight: 900;
+  margin: 2px 0 4px;
+  line-height: 1.05;
 }
 
-.summary-label{color:var(--muted); font-size:13px}
+.summary-label{ color:var(--muted); font-size:13px }
 
-/* Alerts */
+/* -------------------------
+   Alerts
+------------------------- */
 .alerts-list{
-  margin-top:10px;
+  margin-top: 10px;
   display:grid;
-  gap:10px;
+  gap: 10px;
+  grid-template-columns: 1fr; /* phones */
+}
 
-  /* ✅ auto-fit adapts to any width */
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+@media (min-width: 520px){
+  .alerts-list{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+}
+
+@media (min-width: 980px){
+  .alerts-list{ grid-template-columns: repeat(3, minmax(240px, 1fr)); }
 }
 
 .alert-card{
   display:block;
-  border-radius:16px;
-  border:1px solid var(--line);
-  padding:12px;
-  background:rgba(7,10,18,.35);
-  overflow-wrap:anywhere;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--line);
+  padding: 12px;
+  background: rgba(7,10,18,.35);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 @media (hover: hover) and (pointer: fine){
   .alert-card:hover{
     border-color: rgba(96,165,250,.55);
+  }
+}
+
+@media (hover: none) and (pointer: coarse){
+  .alert-card:active{
+    transform: scale(.99);
   }
 }
 
@@ -89,12 +168,10 @@
   margin-bottom:6px;
 }
 
-/* ✅ prevents status pill from shrinking too much */
-.alert-status{
-  flex: 0 0 auto;
-}
+/* prevents status pill from shrinking too much */
+.alert-status{ flex: 0 0 auto; }
 
-.alert-module{font-weight:800}
+.alert-module{ font-weight:800 }
 
 .alert-status{
   font-weight:800;
@@ -102,12 +179,12 @@
   padding:4px 10px;
   border-radius:999px;
   border:1px solid var(--line);
-  background:rgba(7,10,18,.45);
-  white-space:nowrap;
+  background: rgba(7,10,18,.45);
+  white-space: nowrap;
 }
 
-.alert-title{font-weight:700; margin-bottom:4px}
-.alert-location{color:var(--muted); font-size:12px}
+.alert-title{ font-weight:700; margin-bottom:4px }
+.alert-location{ color:var(--muted); font-size:12px }
 
 /* severity */
 .alert-card.high{
@@ -120,7 +197,9 @@
   background: rgba(245,158,11,.10);
 }
 
-/* Wizard overlays */
+/* -------------------------
+   Wizard overlays
+------------------------- */
 .wizard-overlay{
   position: fixed;
   inset: 0;
@@ -131,7 +210,7 @@
   background: rgba(0,0,0,.65);
   backdrop-filter: blur(6px);
 
-  /* ✅ short screens: allow scroll within overlay */
+  /* short screens: allow scroll within overlay */
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -145,42 +224,71 @@
   padding: 16px;
   position: relative;
 
-  /* ✅ keep card visible on small height devices */
+  /* keep card visible on small height devices */
   max-height: calc(100dvh - 32px);
   overflow: auto;
+
+  /* prevents background “scroll chaining” */
+  overscroll-behavior: contain;
+}
+
+/* tighter padding on small phones */
+@media (max-width: 480px){
+  .wizard-overlay{ padding: 12px; }
+  .wizard-card{ padding: 14px; border-radius: 16px; }
 }
 
 .wizard-actions{
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
 }
 
-.wizard-actions .btn{
-  flex: 1 1 140px; /* ✅ avoids tiny buttons */
-}
+/* avoids tiny buttons */
+.wizard-actions .btn{ flex: 1 1 140px; }
 
 .wizard-progress{
-  font-size: 12px;
+  font-size:12px;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom:8px;
 }
 
 .wizard-close{
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: 1px solid var(--line);
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:1px solid var(--line);
   background: rgba(7,10,18,.55);
   color: var(--text);
-  border-radius: 10px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  cursor:pointer;
 }
 
-/* Ultra-small phones: ensure everything is 1 column */
+/* -------------------------
+   Accessibility: focus + reduced motion
+------------------------- */
+.tile:focus-visible,
+.alert-card:focus-visible,
+.wizard-close:focus-visible,
+.btn:focus-visible{
+  outline: none;
+  border-color: rgba(96,165,250,.8);
+  box-shadow: 0 0 0 3px rgba(96,165,250,.35);
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ultra-small phones: force 1 column */
 @media (max-width: 360px){
   .tiles,
   .summary,
