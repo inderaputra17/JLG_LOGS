@@ -1,3 +1,11 @@
+/* =========================================================
+   base.css (aligned UI across devices)
+   - Mobile-first layout that stays aligned on all widths
+   - Burger nav on small devices (<=720px)
+   - Consistent spacing + tap targets + no overflow
+   ========================================================= */
+
+/* ---------- Theme tokens ---------- */
 :root{
   --bg:#0b1220;
   --card:#0f1a31;
@@ -10,8 +18,11 @@
   --radius-sm:12px;
   --maxw:1100px;
 
-  /* Fluid spacing across all devices */
+  /* Fluid spacing across devices */
   --gutter: clamp(12px, 3vw, 18px);
+
+  /* Layout spacing */
+  --gap: clamp(10px, 2.2vw, 14px);
 
   /* Mobile-friendly tap target baseline */
   --tap: 44px;
@@ -32,8 +43,8 @@ html, body{
   width:100%;
   margin:0;
   padding:0;
-  min-height:100dvh;         /* mobile-safe viewport height */
-  overflow-x:hidden;         /* prevent page-level horizontal scroll */
+  min-height:100dvh;
+  overflow-x:hidden;
 }
 
 body{
@@ -44,24 +55,36 @@ body{
   text-rendering: optimizeLegibility;
 }
 
-a{
-  color:inherit;
-  text-decoration:none;
+/* Prevent layout breaks from long strings */
+h1, h2, h3, p, a, li{
+  overflow-wrap:anywhere;
 }
 
-/* media never overflows */
+/* Media never overflows */
 img, svg, video, canvas{
   max-width:100%;
   height:auto;
   display:block;
 }
 
-/* prevent long strings from breaking layouts */
-h1, h2, h3, p, a, li{
-  overflow-wrap:anywhere;
+a{
+  color:inherit;
+  text-decoration:none;
 }
 
-/* ---------- Topbar / Navigation ---------- */
+/* ---------- Keyboard focus (consistent) ---------- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible{
+  outline:none;
+  border-color: rgba(96,165,250,.8);
+  box-shadow: 0 0 0 3px rgba(96,165,250,.35);
+}
+
+/* =========================================================
+   Topbar / Navigation (aligned, device-aware)
+   ========================================================= */
 .topbar{
   position:sticky;
   top:0;
@@ -71,21 +94,36 @@ h1, h2, h3, p, a, li{
   border-bottom:1px solid var(--line);
 }
 
+/* The inner container always aligns content to the same grid */
 .topbar-inner{
   max-width:var(--maxw);
   margin:0 auto;
   padding:12px var(--gutter);
+
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
+
+  /* Alignment safety */
+  min-width:0;
 }
 
+/* Title never breaks alignment */
 h1{
   margin:0;
   font-size:16px;
   font-weight:700;
   white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 70vw; /* avoids pushing nav/burger off-screen */
+}
+
+/* ---------- Desktop nav ---------- */
+.nav-wrap{
+  display:block;
+  min-width:0;
 }
 
 .nav{
@@ -93,6 +131,8 @@ h1{
   flex-wrap:wrap;
   gap:8px;
   justify-content:flex-end;
+  align-items:center;
+  min-width:0;
 }
 
 .nav a{
@@ -103,10 +143,12 @@ h1{
   font-size:13px;
   line-height:1;
 
-  min-height:var(--tap);     /* better tap targets */
+  min-height:var(--tap);
   display:inline-flex;
   align-items:center;
   justify-content:center;
+
+  white-space:nowrap;
 }
 
 .nav a.active{
@@ -115,52 +157,123 @@ h1{
   background:rgba(96,165,250,.08);
 }
 
-/* Mobile: scrollable nav pills (prevents multi-line tall header) */
+/* ---------- Burger button ---------- */
+.nav-toggle{
+  display:none; /* visible on small devices only */
+  border:1px solid var(--line);
+  background:rgba(7,10,18,.55);
+  color:var(--text);
+  border-radius:12px;
+  width:var(--tap);
+  height:var(--tap);
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  flex:0 0 auto;
+}
+
+.nav-toggle-bars{
+  width:18px;
+  height:2px;
+  background:var(--text);
+  position:relative;
+  display:inline-block;
+  border-radius:999px;
+}
+
+.nav-toggle-bars::before,
+.nav-toggle-bars::after{
+  content:"";
+  position:absolute;
+  left:0;
+  width:18px;
+  height:2px;
+  background:var(--text);
+  border-radius:999px;
+}
+.nav-toggle-bars::before{ top:-6px; }
+.nav-toggle-bars::after{ top: 6px; }
+
+/* ---------- Small devices: aligned burger dropdown ---------- */
 @media (max-width: 720px){
+  /* Always keep top row aligned: Title left, Burger right */
   .topbar-inner{
-    flex-direction:column;
-    align-items:flex-start;
+    flex-wrap:wrap;
+    align-items:center;
   }
 
+  /* Show burger */
+  .nav-toggle{
+    display:inline-flex;
+    margin-left:auto; /* keeps burger pinned to the right */
+  }
+
+  /* Collapse nav into full-width dropdown panel */
+  .nav-wrap{
+    width:100%;
+    display:none;
+    margin-top:10px;
+  }
+
+  /* Open state (JS toggles .nav-open on .topbar-inner) */
+  .topbar-inner.nav-open .nav-wrap{
+    display:block;
+  }
+
+  /* Dropdown panel alignment */
   .nav{
     width:100%;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    padding-bottom:6px;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
     gap:10px;
-
-    /* subtle hint that it scrolls */
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 14px,
-      #000 calc(100% - 14px),
-      transparent
-    );
   }
 
+  /* Full-width tap links */
   .nav a{
-    white-space:nowrap;
-    flex:0 0 auto;
+    width:100%;
+    justify-content:flex-start;
+    padding:12px 12px;
+    border:1px solid var(--line);
+    background:rgba(7,10,18,.35);
+  }
+
+  .nav a.active{
+    border-color: rgba(96,165,250,.45);
+    background: rgba(96,165,250,.10);
   }
 }
 
-/* ---------- Page Layout ---------- */
+/* Ultra-small phones */
+@media (max-width: 360px){
+  h1{ max-width: 62vw; }
+  .nav a{ padding:11px 12px; }
+}
+
+/* =========================================================
+   Page Layout (aligned grid that adapts)
+   ========================================================= */
 .container{
   max-width:var(--maxw);
   margin:0 auto;
   padding:14px var(--gutter) 28px;
+
   display:grid;
-  gap:14px;
+  gap:var(--gap);
+
+  /* Alignment safety for nested flex/grid items */
+  min-width:0;
 }
 
+/* Cards align perfectly on any device */
 .card{
   background:rgba(15,26,49,.88);
   border:1px solid var(--line);
   border-radius:var(--radius);
   padding:14px;
   box-shadow:0 10px 30px rgba(0,0,0,.25);
+  min-width:0;
 }
 
 .card h2{
@@ -169,16 +282,17 @@ h1{
   font-weight:700;
 }
 
-/* ---------- Forms ---------- */
+/* =========================================================
+   Forms (aligned fields)
+   ========================================================= */
 .grid{
   display:grid;
   grid-template-columns:1fr; /* mobile-first */
-  gap:10px;
+  gap:var(--gap);
+  min-width:0;
 }
 
-.grid .span2{
-  grid-column:auto;
-}
+.grid .span2{ grid-column:auto; }
 
 label{
   display:flex;
@@ -186,8 +300,10 @@ label{
   gap:6px;
   font-size:12px;
   color:var(--muted);
+  min-width:0;
 }
 
+/* Inputs always align (no iOS zoom, consistent height) */
 input,
 select{
   width:100%;
@@ -198,13 +314,16 @@ select{
   color:var(--text);
   outline:none;
 
-  /* prevents iOS zoom on focus */
   font-size:16px;
   min-height:var(--tap);
 
-  /* more consistent styling on iOS */
   -webkit-appearance:none;
   appearance:none;
+
+  overflow-wrap:anywhere;
+  word-break:break-word;
+
+  transition: border-color .08s ease, box-shadow .08s ease;
 }
 
 input:focus,
@@ -212,13 +331,17 @@ select:focus{
   border-color:rgba(96,165,250,.6);
 }
 
+/* Actions align: always wraps nicely */
 .actions{
   display:flex;
-  gap:10px;
+  gap:var(--gap);
   flex-wrap:wrap;
+  align-items:center;
 }
 
-/* ---------- Buttons ---------- */
+/* =========================================================
+   Buttons (aligned sizing)
+   ========================================================= */
 .btn{
   padding:10px 12px;
   border-radius:var(--radius-sm);
@@ -233,8 +356,11 @@ select:focus{
   align-items:center;
   justify-content:center;
 
-  /* slightly larger for phones */
   font-size:14px;
+  transition: transform .08s ease, border-color .08s ease, box-shadow .08s ease;
+
+  /* alignment safety */
+  min-width: 0;
 }
 
 .btn.primary{
@@ -246,7 +372,14 @@ select:focus{
   transform: translateY(1px);
 }
 
-/* ---------- Helpers ---------- */
+/* Phones: buttons can stack without overflow */
+@media (max-width: 420px){
+  .btn{ width:100%; }
+}
+
+/* =========================================================
+   Helpers (aligned row behavior)
+   ========================================================= */
 .hint{
   margin-top:8px;
   font-size:12px;
@@ -257,15 +390,18 @@ select:focus{
 .row{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
-  align-items:center; /* better alignment on small screens */
+  gap:var(--gap);
+  align-items:center;
   justify-content:space-between;
+  min-width:0;
 }
 
+/* Ensure search aligns and never pushes layout wider */
 .search{
   width:100%;
   max-width:420px;
   min-height:var(--tap);
+  min-width:0;
 }
 
 .small{
@@ -282,19 +418,20 @@ select:focus{
   background:rgba(7,10,18,.5);
 }
 
-/* ---------- Tables (responsive, table-only scroll) ---------- */
+/* =========================================================
+   Tables (aligned, scroll only inside wrapper)
+   ========================================================= */
 .table-wrap{
   width:100%;
-  overflow-x:auto;                 /* table scrolls, page doesn't */
+  overflow-x:auto;
   -webkit-overflow-scrolling:touch;
   border-radius:var(--radius-sm);
 }
 
+/* Table remains readable but doesn’t break page */
 .table{
   width:100%;
   border-collapse:collapse;
-
-  /* readable columns on phones, but not too wide */
   min-width:640px;
 }
 
@@ -323,11 +460,15 @@ select:focus{
   word-break:break-word;
 }
 
-.table tr:hover td{
-  background:rgba(96,165,250,.06);
+@media (hover: hover) and (pointer: fine){
+  .table tr:hover td{
+    background:rgba(96,165,250,.06);
+  }
 }
 
-/* ---------- Responsive Enhancements ---------- */
+/* =========================================================
+   Desktop enhancements (aligned two-column forms)
+   ========================================================= */
 @media (min-width: 760px){
   h1{ font-size:18px; }
   .container{ padding:18px var(--gutter) 30px; }
@@ -349,11 +490,9 @@ select:focus{
   .btn{ font-size:13px; }
 }
 
-@media (max-width: 420px){
-  .btn{ width:100%; }
-}
-
-/* ---------- Accessibility: reduce motion ---------- */
+/* =========================================================
+   Reduced motion
+   ========================================================= */
 @media (prefers-reduced-motion: reduce){
   *{
     animation-duration:.01ms !important;
