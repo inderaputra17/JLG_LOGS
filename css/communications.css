@@ -1,32 +1,45 @@
 /* ---------- Status select pill (table) ---------- */
+/* Keep this file loaded AFTER base.css */
 .table select.status{
-  font-weight: 700;
+  /* shape + weight */
+  font-weight: 800;
   border-radius: 999px;
+
+  /* remove default borders/outlines */
   border: 0 !important;
   outline: none !important;
+  box-shadow: none !important;
 
+  /* sizing */
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--tap);          /* ✅ consistent tap target */
   padding: 8px 12px !important;
-  min-height: 36px;                 /* ✅ touch-friendly */
   line-height: 1.2;
+  text-align: center;
 
+  /* visuals */
   background: transparent !important;
   color: inherit !important;
 
-  appearance: none;                 /* ✅ iOS / Android */
+  /* mobile rendering consistency */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
 
-  cursor: pointer;
-  max-width: 100%;                  /* ✅ prevents overflow */
-  text-align: center;
-}
-
-/* Prevent select from breaking narrow tables */
-.table td select.status{
-  width: 100%;
+  /* prevent overflow */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  cursor: pointer;
+}
+
+/* Ensure the pill doesn't expand table cells unexpectedly */
+.table td select.status{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ---------- Status colours ---------- */
@@ -50,10 +63,16 @@
   color: #ffffff !important;
 }
 
-/* ---------- Mobile-specific tuning ---------- */
+/* ---------- Focus (keyboard accessibility) ---------- */
+.table select.status:focus-visible{
+  outline: 2px solid rgba(96,165,250,.75) !important;
+  outline-offset: 2px;
+}
+
+/* ---------- Mobile tuning ---------- */
 @media (max-width: 520px){
   .table select.status{
-    padding: 10px 14px !important;   /* ✅ easier thumb tap */
-    font-size: 14px;
+    padding: 10px 14px !important; /* easier thumb tap */
+    font-size: 14px;               /* readable on phones */
   }
 }
