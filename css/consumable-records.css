@@ -1,71 +1,179 @@
-/* ---------- Inline edit (table) ---------- */
-/* Keep this file loaded AFTER base.css */
+/* =========================================================
+   consumable-records.css
+   - Device-aware, aligned UI across all screen sizes
+   - Designed to sit ON TOP of base.css
+   - Inline editing controls + action buttons that never overflow
+   ========================================================= */
 
-.table .cell-input,
-.table .cell-select{
-  width:100%;
-  max-width:100%;
+/* ---------------------------------------------------------
+   Inline edit controls (table)
+   Keep this file loaded AFTER base.css
+   --------------------------------------------------------- */
+   .table .cell-input,
+   .table .cell-select{
+     width: 100%;
+     max-width: 100%;
+   
+     /* Align with base look */
+     padding: 10px 12px;
+     border-radius: 10px;
+     border: 1px solid var(--line);
+     background: rgba(7,10,18,.65);
+     color: var(--text);
+   
+     outline: none;
+     box-shadow: none;
+   
+     /* Consistent tap target */
+     min-height: var(--tap);
+   
+     /* iOS zoom prevention on phones */
+     font-size: 16px;
+   
+     /* Prevent cell blowouts from long values */
+     overflow-wrap: anywhere;
+     word-break: break-word;
+   
+     /* Keep height consistent across browsers */
+     line-height: 1.2;
+   
+     /* Small polish without heavy motion */
+     transition: border-color .08s ease, box-shadow .08s ease;
+   }
+   
+   /* Select usability: avoid cramped appearance and inconsistent native UI */
+   .table .cell-select{
+     appearance: none;
+     -webkit-appearance: none;
+     -moz-appearance: none;
+   }
+   
+   /* Fallback focus (any focus) */
+   .table .cell-input:focus,
+   .table .cell-select:focus{
+     border-color: rgba(96,165,250,.6);
+   }
+   
+   /* Keyboard accessibility (preferred) */
+   .table .cell-input:focus-visible,
+   .table .cell-select:focus-visible{
+     outline: 2px solid rgba(96,165,250,.75);
+     outline-offset: 2px;
+     border-color: rgba(96,165,250,.75);
+   }
+   
+   /* Desktop can be more compact */
+   @media (min-width: 760px){
+     .table .cell-input,
+     .table .cell-select{
+       font-size: 13px;
+     }
+   }
+   
+   /* Ultra-small phones: slightly tighter padding, still meets tap size */
+   @media (max-width: 360px){
+     .table .cell-input,
+     .table .cell-select{
+       padding: 9px 10px;
+       font-size: 16px; /* keep iOS zoom prevention */
+     }
+   }
+   
+   /* ---------------------------------------------------------
+      Actions area (inline)
+      - Wraps cleanly, aligned, no overflow
+      --------------------------------------------------------- */
+   .table .actions-inline{
+     display: flex;
+     gap: 8px;
+     flex-wrap: wrap;
+     align-items: center;
+   
+     /* Prevent action row from stretching table */
+     min-width: 0;
+   }
+   
+   /* Buttons inside action row:
+      - Tap-friendly
+      - Don’t shrink too small
+   */
+   .table .btn.small{
+     padding: 10px 12px;
+     min-height: var(--tap);
+     border-radius: 10px;
+     font-size: 12px;
+   
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+   
+     white-space: nowrap;
+   
+     /* Prevent tiny pill buttons on narrow screens */
+     flex: 1 1 140px;
+     min-width: 120px;
+   }
+   
+   /* On larger screens, let small buttons size to content */
+   @media (min-width: 760px){
+     .table .btn.small{
+       flex: 0 1 auto;
+       min-width: auto;
+     }
+   }
+   
+   /* Tiny phones: stack buttons full-width */
+   @media (max-width: 420px){
+     .table .actions-inline{
+       flex-direction: column;
+       align-items: stretch;
+     }
+     .table .btn.small{
+       width: 100%;
+       min-width: 0;
+     }
+   }
+   
+   /* Touch feedback only on touch devices (no sticky hover issues) */
+   @media (hover: none) and (pointer: coarse){
+     .table .btn.small:active{
+       transform: scale(.99);
+     }
+   }
+   
+   /* ---------------------------------------------------------
+      Editing highlight (row state)
+      --------------------------------------------------------- */
+   .table tr.editing td{
+     background: rgba(96,165,250,.06);
+   }
+   
+   /* Optional: add a subtle left marker for edited row visibility */
+   .table tr.editing td:first-child{
+     border-left: 1px solid rgba(96,165,250,.18);
+   }
+   
+   /* ---------------------------------------------------------
+      Defensive alignment helpers
+      --------------------------------------------------------- */
+   /* Keeps mixed content aligned neatly */
+   .table td{
+     vertical-align: middle;
+   }
+   
+   /* Prevent children from forcing cell width larger than the table */
+   .table td > *{
+     min-width: 0;
+   }
+   
+   /* ---------------------------------------------------------
+      Reduced motion (inherits base.css, reinforced here)
+      --------------------------------------------------------- */
+   @media (prefers-reduced-motion: reduce){
+     .table .cell-input,
+     .table .cell-select,
+     .table .btn.small{
+       transition: none !important;
+     }
+   }
 
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:rgba(7,10,18,.65);
-  color:var(--text);
-
-  outline:none;
-  box-shadow:none;
-
-  min-height:var(--tap);         /* ✅ consistent touch target */
-  font-size:16px;                /* ✅ prevents iOS zoom */
-}
-
-/* Desktop can be more compact */
-@media (min-width: 760px){
-  .table .cell-input,
-  .table .cell-select{
-    font-size:13px;
-  }
-}
-
-/* Keyboard accessibility */
-.table .cell-input:focus-visible,
-.table .cell-select:focus-visible{
-  outline:2px solid rgba(96,165,250,.75);
-  outline-offset:2px;
-}
-
-/* Actions area: wraps cleanly on phones */
-.table .actions-inline{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-
-/* Small buttons: keep tap-friendly, consistent with base */
-.table .btn.small{
-  padding:10px 12px;
-  min-height:var(--tap);
-  border-radius:10px;
-  font-size:12px;
-
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* Tiny phones: stack buttons full-width */
-@media (max-width: 420px){
-  .table .actions-inline{
-    flex-direction:column;
-    align-items:stretch;
-  }
-  .table .btn.small{
-    width:100%;
-  }
-}
-
-/* Editing highlight */
-.table tr.editing td{
-  background:rgba(96,165,250,.06);
-}
