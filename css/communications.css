@@ -1,4 +1,4 @@
-/* Force override base.css select styling */
+/* ---------- Status select pill (table) ---------- */
 .table select.status{
   font-weight: 700;
   border-radius: 999px;
@@ -6,26 +6,54 @@
   outline: none !important;
 
   padding: 8px 12px !important;
+  min-height: 36px;                 /* ✅ touch-friendly */
+  line-height: 1.2;
 
-  /* override base.css background */
   background: transparent !important;
   color: inherit !important;
+
+  appearance: none;                 /* ✅ iOS / Android */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  cursor: pointer;
+  max-width: 100%;                  /* ✅ prevents overflow */
+  text-align: center;
 }
 
-/* Closed select colours */
+/* Prevent select from breaking narrow tables */
+.table td select.status{
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Status colours ---------- */
 .table select.status.online{
   background: #22c55e !important;
   color: #062e0c !important;
 }
+
 .table select.status.offline{
   background: #ef4444 !important;
   color: #ffffff !important;
 }
+
 .table select.status.notinuse{
   background: #f59e0b !important;
   color: #000000 !important;
 }
+
 .table select.status.spoilt{
   background: #7f1d1d !important;
   color: #ffffff !important;
+}
+
+/* ---------- Mobile-specific tuning ---------- */
+@media (max-width: 520px){
+  .table select.status{
+    padding: 10px 14px !important;   /* ✅ easier thumb tap */
+    font-size: 14px;
+  }
 }
