@@ -3,25 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>Dashboard</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#111827" />
 
+  <!-- Base FIRST, then page CSS -->
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
+
+  <!-- Optional: faster module fetch (safe) -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
       <h1>Dashboard</h1>
-      <nav class="nav">
-        <a class="active" href="/dashboard">Dashboard</a>
-        <a href="/stock-management">Stock Management</a>
-        <a href="/consumable-records">Consumables</a>
-        <a href="/fixture-records">Fixtures</a>
-        <a href="/communications">Comms</a>
-      </nav>      
+
+      <!-- Mobile burger -->
+      <button
+        class="nav-toggle"
+        id="navToggle"
+        type="button"
+        aria-label="Open menu"
+        aria-controls="siteNav"
+        aria-expanded="false"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="siteNav" aria-label="Primary navigation" data-collapsible>
+        <a class="active" href="index.html" aria-current="page">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="communications.html">Comms</a>
+      </nav>
     </div>
   </header>
 
@@ -107,5 +125,72 @@
   </div>
 
   <script type="module" src="js/dashboard.js"></script>
+
+  <!-- Mobile burger toggle (works with base.css nav styles) -->
+  <script>
+    (function () {
+      const btn = document.getElementById("navToggle");
+      const nav = document.getElementById("siteNav");
+      if (!btn || !nav) return;
+
+      function setOpen(open) {
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        nav.dataset.open = open ? "1" : "0";
+
+        if (open) {
+          const first = nav.querySelector("a");
+          if (first) first.focus({ preventScroll: true });
+        }
+      }
+
+      btn.addEventListener("click", () => {
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        setOpen(!isOpen);
+      });
+
+      nav.addEventListener("click", (e) => {
+        const a = e.target.closest("a");
+        if (!a) return;
+        setOpen(false);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        setOpen(false);
+      });
+
+      // Close if switching to desktop width
+      const mq = window.matchMedia("(min-width: 721px)");
+      mq.addEventListener?.("change", () => setOpen(false));
+    })();
+  </script>
+
+  <!-- Clean URL helper (Option A – works on Vercel only) -->
+  <script>
+    (function () {
+      const map = {
+        "index.html": "/dashboard",
+        "stock-management.html": "/stock-management",
+        "consumable-records.html": "/consumable-records",
+        "fixture-records.html": "/fixture-records",
+        "communications.html": "/communications"
+      };
+
+      const file = location.pathname.split("/").pop() || "index.html";
+      const clean = map[file];
+      if (!clean) return;
+
+      const host = location.hostname;
+      const isStackBlitz =
+        host.includes("stackblitz") ||
+        host.includes("webcontainer");
+
+      if (isStackBlitz) return;
+
+      if (location.pathname !== clean) {
+        history.replaceState({}, "", clean);
+      }
+    })();
+  </script>
 </body>
 </html>
