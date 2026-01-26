@@ -1,0 +1,103 @@
+/* =========================================================
+   stock-management.css
+   - Fix broken words in table (consumable -> consu/mabl/e)
+   - Improve column alignment + readable wrapping
+   - Keep horizontal scroll inside .table-wrap (mobile-safe)
+   ========================================================= */
+
+/* ---------- Page spacing tweaks (optional but nice) ---------- */
+.card .row{
+  align-items: center;
+}
+
+/* ---------- Records table: device-safe width ---------- */
+/* base.css sets .table{ min-width:640px } which is too tight for 8 columns.
+   Override ONLY for stock management tables. */
+#allTable.table{
+  min-width: 980px;
+}
+
+/* Slightly smaller minimum for small screens so scrolling isn't insane */
+@media (max-width: 520px){
+  #allTable.table{
+    min-width: 860px;
+  }
+}
+
+/* ---------- Stop mid-word breaking (the main bug) ---------- */
+/* base.css uses word-break: break-word; which causes ugly mid-word splits.
+   Override for this page’s table cells. */
+#allTable th,
+#allTable td{
+  word-break: normal;         /* ✅ do NOT split normal words */
+  overflow-wrap: anywhere;    /* ✅ still breaks super-long tokens if needed */
+  white-space: normal;
+}
+
+/* Headings: keep tidy */
+#allTable th{
+  white-space: nowrap;
+}
+
+/* ---------- Column sizing via colgroup ---------- */
+/* These widths work well across desktop + tablet.
+   The table will still scroll on phones. */
+#allTable col.col-type{ width: 130px; }
+#allTable col.col-item{ width: 320px; }
+#allTable col.col-category{ width: 220px; }
+#allTable col.col-status{ width: 140px; }
+#allTable col.col-qty{ width: 90px; }
+#allTable col.col-location{ width: 220px; }
+#allTable col.col-site{ width: 120px; }
+#allTable col.col-actions{ width: 170px; }
+
+/* ---------- Type pill: never wrap vertically ---------- */
+#allTable td:first-child{
+  white-space: nowrap;        /* keep the pill on one line */
+}
+
+#allTable td:first-child .pill{
+  /* Defeat any inherited breaking */
+  overflow-wrap: normal;
+  word-break: normal;
+
+  /* Keep it as a true pill */
+  white-space: nowrap;
+  justify-content: center;
+
+  /* Prevent huge pills, show ellipsis if needed */
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Actions: keep buttons readable ---------- */
+#allTable td:last-child{
+  white-space: nowrap;
+}
+
+#allTable td:last-child .btn{
+  padding: 10px 12px;
+  min-height: var(--tap);
+  border-radius: 10px;
+}
+
+/* On narrower screens, allow buttons to wrap cleanly */
+@media (max-width: 720px){
+  #allTable td:last-child{
+    white-space: normal;
+  }
+  #allTable td:last-child .btn{
+    width: auto;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+}
+
+/* ---------- Location cell: keep “Main” + small “Exact” readable ---------- */
+#allTable td:nth-child(6) .small{
+  display: block;
+  margin-top: 4px;
+  line-height: 1.25;
+  opacity: 0.9;
+}
