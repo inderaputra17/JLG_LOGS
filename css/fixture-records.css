@@ -1,151 +1,181 @@
-/* ==========================================
-   Inline edit styling (device-aware + mobile-safe)
-   - Keeps your base look (same palette + borders)
-   - Improves tap targets + wrapping + focus visibility
-   - Prevents overflow on narrow screens
-   ========================================== */
+/* =========================================================
+   fixture-records.css
+   - Device-aware, aligned UI across all screen sizes
+   - Designed to sit ON TOP of base.css
+   - Inline editing controls + action buttons that never overflow
+   ========================================================= */
 
-/* ---------- Base controls inside table cells ---------- */
-.table .cell-input,
-.table .cell-select{
-  width: 100%;
-  max-width: 100%;
-
-  /* Comfortable tap + visual balance across devices */
-  padding: 10px 12px;
-
-  /* Match your card/button rounding style */
-  border-radius: 10px;
-
-  /* Same border + glassy background language */
-  border: 1px solid var(--line);
-  background: rgba(7,10,18,.65);
-  color: var(--text);
-
-  outline: none;
-
-  /* Touch target: keep input tall enough for thumbs */
-  min-height: 40px;
-
-  /* Defensive wrapping for long values on small screens */
-  overflow-wrap: anywhere;
-  word-break: break-word;
-
-  /* Avoid layout shifts caused by unusual font sizing */
-  line-height: 1.2;
-
-  /* Smooth focus/hover transitions without being flashy */
-  transition: border-color .08s ease, box-shadow .08s ease;
-}
-
-/* Improve select usability: prevent it from looking cramped */
-.table .cell-select{
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-/* Optional: if your selects have native arrows clipped on iOS,
-   this gives more breathing space on the right. */
-@media (max-width: 520px){
-  .table .cell-select{
-    padding-right: 38px;
-  }
-}
-
-/* ---------- Focus ring (keyboard + accessibility) ---------- */
-/* Use :focus-visible when supported so mouse clicks don’t show ring */
-.table .cell-input:focus-visible,
-.table .cell-select:focus-visible{
-  border-color: rgba(96,165,250,.75);
-  box-shadow: 0 0 0 3px rgba(96,165,250,.28);
-}
-
-/* Fallback for browsers that don’t support :focus-visible well */
-.table .cell-input:focus,
-.table .cell-select:focus{
-  border-color: rgba(96,165,250,.6);
-}
-
-/* ---------- Inline actions container ---------- */
-.table .actions-inline{
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-
-  /* Prevent action row from forcing the table wider */
-  min-width: 0;
-}
-
-/* ---------- Small buttons (tap-friendly) ---------- */
-.table .btn.small{
-  padding: 10px 12px;     /* bigger tap area without changing style */
-  min-height: 40px;
-  border-radius: 10px;
-  font-size: 12px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Prevent buttons from shrinking into unreadable pills */
-  flex: 0 1 auto;
-  white-space: nowrap;
-}
-
-/* On medium-small phones, allow buttons to take half width
-   (helps avoid long rows of tiny buttons) */
-@media (max-width: 520px){
-  .table .btn.small{
-    flex: 1 1 140px;
-  }
-}
-
-/* Tiny phones: stack buttons vertically to avoid overflow */
-@media (max-width: 420px){
-  .table .actions-inline{
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .table .btn.small{
-    width: 100%;
-  }
-}
-
-/* ---------- Editing highlight (row state) ---------- */
-/* Subtle highlight that doesn’t reduce contrast too much */
-.table tr.editing td{
-  background: rgba(96,165,250,.06);
-}
-
-/* Optional: if your table has alternating row backgrounds,
-   ensure the editing state still reads clearly */
-.table tr.editing td:first-child{
-  border-left: 1px solid rgba(96,165,250,.18);
-}
-
-/* ---------- Optional: tighter spacing on ultra-small devices ---------- */
-/* Keeps controls from feeling “too big” on very small screens while
-   still meeting touch target sizing. */
-@media (max-width: 360px){
-  .table .cell-input,
-  .table .cell-select{
-    padding: 9px 10px;
-    min-height: 40px; /* keep touch target */
-  }
-
-  .table .btn.small{
-    padding: 9px 10px;
-    min-height: 40px;
-  }
-}
-
-/* ---------- Reduced motion safety ---------- */
-/* Ensures transitions don’t bother users who disable motion */
-@media (prefers-reduced-motion: reduce){
-  .table .cell-input,
-  .table .cell-select,
-  .table .btn.small{
-    transition: none;
-  }
-}
+/* ---------------------------------------------------------
+   Inline edit controls (table)
+   Keep this file loaded AFTER base.css
+   --------------------------------------------------------- */
+   .table .cell-input,
+   .table .cell-select{
+     width: 100%;
+     max-width: 100%;
+   
+     /* Comfortable tap + visual balance across devices */
+     padding: 10px 12px;
+   
+     /* Match your rounding style */
+     border-radius: 10px;
+   
+     /* Same border + glassy background language */
+     border: 1px solid var(--line);
+     background: rgba(7,10,18,.65);
+     color: var(--text);
+   
+     outline: none;
+     box-shadow: none;
+   
+     /* Consistent tap target (use your base token) */
+     min-height: var(--tap);
+   
+     /* iOS zoom prevention on phones */
+     font-size: 16px;
+   
+     /* Defensive wrapping */
+     overflow-wrap: anywhere;
+     word-break: break-word;
+   
+     /* Keep height consistent across browsers */
+     line-height: 1.2;
+   
+     /* Subtle interaction polish */
+     transition: border-color .08s ease, box-shadow .08s ease;
+   }
+   
+   /* Select usability: prevent cramped native rendering */
+   .table .cell-select{
+     appearance: none;
+     -webkit-appearance: none;
+     -moz-appearance: none;
+   }
+   
+   /* If native arrows clip on iOS, give breathing space */
+   @media (max-width: 520px){
+     .table .cell-select{
+       padding-right: 38px;
+     }
+   }
+   
+   /* Focus states */
+   .table .cell-input:focus,
+   .table .cell-select:focus{
+     border-color: rgba(96,165,250,.6);
+   }
+   
+   .table .cell-input:focus-visible,
+   .table .cell-select:focus-visible{
+     border-color: rgba(96,165,250,.75);
+     box-shadow: 0 0 0 3px rgba(96,165,250,.28);
+   }
+   
+   /* Desktop can be more compact */
+   @media (min-width: 760px){
+     .table .cell-input,
+     .table .cell-select{
+       font-size: 13px;
+     }
+   }
+   
+   /* Ultra-small phones: tighten padding without shrinking tap target */
+   @media (max-width: 360px){
+     .table .cell-input,
+     .table .cell-select{
+       padding: 9px 10px;
+       font-size: 16px; /* keep iOS zoom prevention */
+     }
+   }
+   
+   /* ---------------------------------------------------------
+      Actions container (inline)
+      - Wraps cleanly on phones
+      - Prevents overflow widening the table
+      --------------------------------------------------------- */
+   .table .actions-inline{
+     display: flex;
+     gap: 8px;
+     flex-wrap: wrap;
+     align-items: center;
+   
+     min-width: 0;
+   }
+   
+   /* Buttons: tap-friendly, consistent with base */
+   .table .btn.small{
+     padding: 10px 12px;
+     min-height: var(--tap);
+     border-radius: 10px;
+     font-size: 12px;
+   
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+   
+     white-space: nowrap;
+   
+     /* Helps on small screens (prevents tiny buttons) */
+     flex: 0 1 auto;
+   }
+   
+   /* On medium-small phones, allow half-width buttons */
+   @media (max-width: 520px){
+     .table .btn.small{
+       flex: 1 1 140px;
+       min-width: 120px;
+     }
+   }
+   
+   /* Tiny phones: stack buttons full-width */
+   @media (max-width: 420px){
+     .table .actions-inline{
+       flex-direction: column;
+       align-items: stretch;
+     }
+     .table .btn.small{
+       width: 100%;
+       min-width: 0;
+     }
+   }
+   
+   /* Touch feedback only on touch devices */
+   @media (hover: none) and (pointer: coarse){
+     .table .btn.small:active{
+       transform: scale(.99);
+     }
+   }
+   
+   /* ---------------------------------------------------------
+      Editing highlight (row state)
+      --------------------------------------------------------- */
+   .table tr.editing td{
+     background: rgba(96,165,250,.06);
+   }
+   
+   .table tr.editing td:first-child{
+     border-left: 1px solid rgba(96,165,250,.18);
+   }
+   
+   /* ---------------------------------------------------------
+      Defensive alignment helpers
+      --------------------------------------------------------- */
+   .table td{
+     vertical-align: middle;
+   }
+   
+   .table td > *{
+     min-width: 0;
+   }
+   
+   /* ---------------------------------------------------------
+      Reduced motion safety
+      --------------------------------------------------------- */
+   @media (prefers-reduced-motion: reduce){
+     .table .cell-input,
+     .table .cell-select,
+     .table .btn.small{
+       transition: none !important;
+     }
+   }
+   
