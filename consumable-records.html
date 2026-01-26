@@ -3,33 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>Consumable Records</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#111827" />
 
+  <!-- Base FIRST, then page CSS -->
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/consumable-records.css" />
+
+  <!-- Optional: faster module fetch (safe) -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
       <h1>Consumable Records</h1>
-      <nav class="nav">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/stock-management">Stock Management</a>
-        <a class="active" href="/consumable-records">Consumables</a>
-        <a href="/fixture-records">Fixtures</a>
-        <a href="/communications">Comms</a>
-      </nav>      
+
+      <!-- Mobile burger -->
+      <button
+        class="nav-toggle"
+        id="navToggle"
+        type="button"
+        aria-label="Open menu"
+        aria-controls="siteNav"
+        aria-expanded="false"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav class="nav" id="siteNav" aria-label="Primary navigation" data-collapsible>
+        <a href="index.html">Dashboard</a>
+        <a href="stock-management.html">Stock Management</a>
+        <a class="active" href="consumable-records.html" aria-current="page">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="communications.html">Comms</a>
+      </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="card">
       <div class="row">
-        <h2>All Consumables</h2>
-        <input id="searchConsumables" class="search" type="search" placeholder="Search name/category/status/location…" />
+        <h2 style="margin:0">All Consumables</h2>
+
+        <input
+          id="searchConsumables"
+          class="search"
+          type="search"
+          placeholder="Search name/category/status/location…"
+          autocomplete="off"
+          inputmode="search"
+        />
       </div>
 
       <div class="table-wrap">
@@ -51,10 +77,77 @@
 
       <p class="hint">
         Edit inline (no pop-ups). Save applies changes to Firebase immediately.
+        On small screens, the table scrolls horizontally inside this card (page won’t overflow).
       </p>
     </section>
   </main>
 
   <script type="module" src="js/consumable-records.js"></script>
+
+  <!-- Mobile burger toggle (works with base.css nav styles) -->
+  <script>
+    (function () {
+      const btn = document.getElementById("navToggle");
+      const nav = document.getElementById("siteNav");
+      if (!btn || !nav) return;
+
+      function setOpen(open) {
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        nav.dataset.open = open ? "1" : "0";
+
+        if (open) {
+          const first = nav.querySelector("a");
+          if (first) first.focus({ preventScroll: true });
+        }
+      }
+
+      btn.addEventListener("click", () => {
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        setOpen(!isOpen);
+      });
+
+      nav.addEventListener("click", (e) => {
+        const a = e.target.closest("a");
+        if (!a) return;
+        setOpen(false);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        setOpen(false);
+      });
+
+      const mq = window.matchMedia("(min-width: 721px)");
+      mq.addEventListener?.("change", () => setOpen(false));
+    })();
+  </script>
+
+  <!-- Clean URL helper (Option A – works on Vercel only) -->
+  <script>
+    (function () {
+      const map = {
+        "index.html": "/dashboard",
+        "stock-management.html": "/stock-management",
+        "consumable-records.html": "/consumable-records",
+        "fixture-records.html": "/fixture-records",
+        "communications.html": "/communications"
+      };
+
+      const file = location.pathname.split("/").pop() || "index.html";
+      const clean = map[file];
+      if (!clean) return;
+
+      const host = location.hostname;
+      const isStackBlitz =
+        host.includes("stackblitz") ||
+        host.includes("webcontainer");
+
+      if (isStackBlitz) return;
+
+      if (location.pathname !== clean) {
+        history.replaceState({}, "", clean);
+      }
+    })();
+  </script>
 </body>
 </html>
