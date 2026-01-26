@@ -3,31 +3,57 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>Stock Management</title>
+
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#111827" />
+
+  <!-- Base FIRST, then page CSS -->
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/stock-management.css" />
+
+  <!-- Optional: faster module fetch (safe) -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
 </head>
+
 <body>
   <header class="topbar">
     <div class="topbar-inner">
       <h1>Stock Management</h1>
-      <nav class="nav">
-        <a href="/dashboard">Dashboard</a>
-        <a class="active" href="/stock-management">Stock Management</a>
-        <a href="/consumable-records">Consumables</a>
-        <a href="/fixture-records">Fixtures</a>
-        <a href="/communications">Comms</a>
-      </nav>      
+
+      <!-- Mobile burger (hidden via CSS on desktop) -->
+      <button
+        class="nav-toggle"
+        id="navToggle"
+        type="button"
+        aria-label="Open menu"
+        aria-controls="siteNav"
+        aria-expanded="false"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <!-- IMPORTANT: id must match aria-controls -->
+      <!-- data-collapsible + data-open are used by base.css patterns -->
+      <nav class="nav" id="siteNav" aria-label="Primary navigation" data-collapsible data-open="0">
+        <a href="index.html">Dashboard</a>
+        <a class="active" href="stock-management.html" aria-current="page">Stock Management</a>
+        <a href="consumable-records.html">Consumables</a>
+        <a href="fixture-records.html">Fixtures</a>
+        <a href="communications.html">Comms</a>
+      </nav>
     </div>
   </header>
 
   <main class="container">
+    <!-- =======================
+         Add Item
+    ======================== -->
     <section class="card">
       <h2>Add Item Record</h2>
 
-      <form id="addForm" class="grid">
+      <form id="addForm" class="grid" autocomplete="off">
         <label>
           Type
           <select id="type" required>
@@ -53,7 +79,15 @@
 
         <label>
           Quantity
-          <input id="qty" type="number" min="0" step="1" placeholder="e.g., 10" required />
+          <input
+            id="qty"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="e.g., 10"
+            required
+            inputmode="numeric"
+          />
         </label>
 
         <label>
@@ -86,14 +120,37 @@
       </p>
     </section>
 
+    <!-- =======================
+         Records Table
+         FIX: add colgroup so columns do not squeeze and split words
+    ======================== -->
     <section class="card">
       <div class="row">
         <h2>Records (All)</h2>
-        <input id="searchAll" class="search" type="search" placeholder="Search name/category/location…" />
+        <input
+          id="searchAll"
+          class="search"
+          type="search"
+          placeholder="Search name/category/location…"
+          autocomplete="off"
+          inputmode="search"
+        />
       </div>
 
       <div class="table-wrap">
         <table class="table" id="allTable">
+          <!-- colgroup works together with stock-management.css column widths -->
+          <colgroup>
+            <col class="col-type" />
+            <col class="col-item" />
+            <col class="col-category" />
+            <col class="col-status" />
+            <col class="col-qty" />
+            <col class="col-location" />
+            <col class="col-site" />
+            <col class="col-actions" />
+          </colgroup>
+
           <thead>
             <tr>
               <th>Type</th>
@@ -109,12 +166,19 @@
           <tbody id="allTbody"></tbody>
         </table>
       </div>
+
+      <p class="hint">
+        On phones, swipe inside the table area to scroll horizontally.
+      </p>
     </section>
 
+    <!-- =======================
+         Transfer Location
+    ======================== -->
     <section class="card">
       <h2>Transfer Location</h2>
 
-      <form id="transferForm" class="grid">
+      <form id="transferForm" class="grid" autocomplete="off">
         <label class="span2">
           From (Select a record)
           <select id="fromRecord" required></select>
@@ -140,7 +204,14 @@
 
         <label>
           Transfer Quantity (optional)
-          <input id="transferQty" type="number" min="0" step="1" placeholder="leave blank = transfer all" />
+          <input
+            id="transferQty"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="leave blank = transfer all"
+            inputmode="numeric"
+          />
         </label>
 
         <div class="actions">
@@ -149,14 +220,20 @@
         </div>
       </form>
 
-      <p class="hint">Leave quantity blank to transfer ALL quantity from the selected record.</p>
+      <p class="hint">
+        Leave quantity blank to transfer <b>ALL</b> quantity from the selected record.
+        If you enter a number, it transfers that amount and subtracts from the original record.
+      </p>
     </section>
 
+    <!-- =======================
+         Edit Record
+    ======================== -->
     <section class="card">
       <h2>Edit Record</h2>
       <p class="hint">Click “Edit” on any row to load it here.</p>
 
-      <form id="editForm" class="grid">
+      <form id="editForm" class="grid" autocomplete="off">
         <input id="editId" type="hidden" />
 
         <label>
@@ -184,7 +261,7 @@
 
         <label>
           Quantity
-          <input id="editQty" type="number" min="0" step="1" required />
+          <input id="editQty" type="number" min="0" step="1" required inputmode="numeric" />
         </label>
 
         <label>
@@ -213,12 +290,87 @@
     </section>
   </main>
 
+  <!-- Keep if other pages still rely on it -->
   <script src="js/core.js"></script>
-  <script type="module" src="/js/stock-management.js"></script>
+
+  <!-- Page logic -->
+  <script type="module" src="js/stock-management.js"></script>
 
   <script>
-    StocksApp.initPage("stock-management");
+    if (window.StocksApp && typeof window.StocksApp.initPage === "function") {
+      window.StocksApp.initPage("stock-management");
+    }
+  </script>
+
+  <!-- Mobile burger toggle -->
+  <script>
+    (function () {
+      const btn = document.getElementById("navToggle");
+      const nav = document.getElementById("siteNav");
+      if (!btn || !nav) return;
+
+      function setOpen(open) {
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        nav.dataset.open = open ? "1" : "0";
+      }
+
+      btn.addEventListener("click", () => {
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        setOpen(!isOpen);
+      });
+
+      // Close after choosing a link
+      nav.addEventListener("click", (e) => {
+        const a = e.target.closest("a");
+        if (!a) return;
+        setOpen(false);
+      });
+
+      // Close on Escape
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setOpen(false);
+      });
+
+      // Close when switching to desktop
+      const mq = window.matchMedia("(min-width: 721px)");
+      mq.addEventListener?.("change", () => setOpen(false));
+
+      // Optional: close if tapping outside nav while open
+      document.addEventListener("click", (e) => {
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        if (!isOpen) return;
+        if (e.target.closest("#siteNav") || e.target.closest("#navToggle")) return;
+        setOpen(false);
+      });
+    })();
+  </script>
+
+  <!-- Clean URL helper (Option A – works on Vercel only) -->
+  <script>
+    (function () {
+      const map = {
+        "index.html": "/dashboard",
+        "stock-management.html": "/stock-management",
+        "consumable-records.html": "/consumable-records",
+        "fixture-records.html": "/fixture-records",
+        "communications.html": "/communications"
+      };
+
+      const file = location.pathname.split("/").pop() || "index.html";
+      const clean = map[file];
+      if (!clean) return;
+
+      const host = location.hostname;
+      const isStackBlitz =
+        host.includes("stackblitz") ||
+        host.includes("webcontainer");
+
+      if (isStackBlitz) return;
+
+      if (location.pathname !== clean) {
+        history.replaceState({}, "", clean);
+      }
+    })();
   </script>
 </body>
 </html>
- 
